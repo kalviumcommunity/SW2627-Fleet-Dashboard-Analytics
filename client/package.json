@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:mock": "tsx scripts/generateMockData.ts"
   },
   "dependencies": {
     "next": "16.3.1",
@@ -20,6 +21,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
+    "tsx": "^4.20.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

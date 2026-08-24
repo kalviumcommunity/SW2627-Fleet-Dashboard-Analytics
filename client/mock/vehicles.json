@@ -1,0 +1,277 @@
+[
+  {
+    "id": "vehicle-00001",
+    "name": "Vehicle 1",
+    "registrationNumber": "RJ141001",
+    "status": "active",
+    "lastKnownLocation": {
+      "lat": 27.01576,
+      "lng": 75.526585,
+      "timestamp": "2026-08-24T08:38:51.401Z"
+    }
+  },
+  {
+    "id": "vehicle-00002",
+    "name": "Vehicle 2",
+    "registrationNumber": "RJ141002",
+    "status": "active",
+    "lastKnownLocation": {
+      "lat": 27.343086,
+      "lng": 75.909279,
+      "timestamp": "2026-08-24T08:38:51.409Z"
+    }
+  },
+  {
+    "id": "vehicle-00003",
+    "name": "Vehicle 3",
+    "registrationNumber": "RJ141003",
+    "status": "idle",
+    "lastKnownLocation": {
+      "lat": 27.156821,
+      "lng": 75.896583,
+      "timestamp": "2026-08-24T08:38:51.411Z"
+    }
+  },
+  {
+    "id": "vehicle-00004",
+    "name": "Vehicle 4",
+    "registrationNumber": "RJ141004",
+    "status": "idle",
+    "lastKnownLocation": {
+      "lat": 26.987836,
+      "lng": 75.823713,
+      "timestamp": "2026-08-24T08:38:51.411Z"
+    }
+  },
+  {
+    "id": "vehicle-00005",
+    "name": "Vehicle 5",
+    "registrationNumber": "RJ141005",
+    "status": "offline",
+    "lastKnownLocation": {
+      "lat": 27.187928,
+      "lng": 76.227103,
+      "timestamp": "2026-08-24T08:38:51.412Z"
+    }
+  },
+  {
+    "id": "vehicle-00006",
+    "name": "Vehicle 6",
+    "registrationNumber": "RJ141006",
+    "status": "active",
+    "lastKnownLocation": {
+      "lat": 26.905278,
+      "lng": 75.46403,
+      "timestamp": "2026-08-24T08:38:51.413Z"
+    }
+  },
+  {
+    "id": "vehicle-00007",
+    "name": "Vehicle 7",
+    "registrationNumber": "RJ141007",
+    "status": "active",
+    "lastKnownLocation": {
+      "lat": 26.72179,
+      "lng": 76.179994,
+      "timestamp": "2026-08-24T08:38:51.413Z"
+    }
+  },
+  {
+    "id": "vehicle-00008",
+    "name": "Vehicle 8",
+    "registrationNumber": "RJ141008",
+    "status": "idle",
+    "lastKnownLocation": {
+      "lat": 26.556386,
+      "lng": 75.926134,
+      "timestamp": "2026-08-24T08:38:51.414Z"
+    }
+  },
+  {
+    "id": "vehicle-00009",
+    "name": "Vehicle 9",
+    "registrationNumber": "RJ141009",
+    "status": "active",
+    "lastKnownLocation": {
+      "lat": 26.817709,
+      "lng": 75.458014,
+      "timestamp": "2026-08-24T08:38:51.414Z"
+    }
+  },
+  {
+    "id": "vehicle-00010",
+    "name": "Vehicle 10",
+    "registrationNumber": "RJ141010",
+    "status": "idle",
+    "lastKnownLocation": {
+      "lat": 27.333059,
+      "lng": 75.618013,
+      "timestamp": "2026-08-24T08:38:51.415Z"
+    }
+  },
+  {
+    "id": "vehicle-00011",
+    "name": "Vehicle 11",
+    "registrationNumber": "RJ141011",
+    "status": "active",
+    "lastKnownLocation": {
+      "lat": 26.472553,
+      "lng": 75.447323,
+      "timestamp": "2026-08-24T08:38:51.415Z"
+    }
+  },
+  {
+    "id": "vehicle-00012",
+    "name": "Vehicle 12",
+    "registrationNumber": "RJ141012",
+    "status": "active",
+    "lastKnownLocation": {
+      "lat": 26.784926,
+      "lng": 75.737302,
+      "timestamp": "2026-08-24T08:38:51.416Z"
+    }
+  },
+  {
+    "id": "vehicle-00013",
+    "name": "Vehicle 13",
+    "registrationNumber": "RJ141013",
+    "status": "offline",
+    "lastKnownLocation": {
+      "lat": 26.656969,
+      "lng": 75.892562,
+      "timestamp": "2026-08-24T08:38:51.416Z"
+    }
+  },
+  {
+    "id": "vehicle-00014",
+    "name": "Vehicle 14",
+    "registrationNumber": "RJ141014",
+    "status": "idle",
+    "lastKnownLocation": {
+      "lat": 27.224731,
+      "lng": 76.05317,
+      "timestamp": "2026-08-24T08:38:51.416Z"
+    }
+  },
+  {
+    "id": "vehicle-00015",
+    "name": "Vehicle 15",
+    "registrationNumber": "RJ141015",
+    "status": "idle",
+    "lastKnownLocation": {
+      "lat": 26.883709,
+      "lng": 75.609972,
+      "timestamp": "2026-08-24T08:38:51.417Z"
+    }
+  },
+  {
+    "id": "vehicle-00016",
+    "name": "Vehicle 16",
+    "registrationNumber": "RJ141016",
+    "status": "active",
+    "lastKnownLocation": {
+      "lat": 26.884522,
+      "lng": 75.500324,
+      "timestamp": "2026-08-24T08:38:51.418Z"
+    }
+  },
+  {
+    "id": "vehicle-00017",
+    "name": "Vehicle 17",
+    "registrationNumber": "RJ141017",
+    "status": "idle",
+    "lastKnownLocation": {
+      "lat": 26.447172,
+      "lng": 75.395147,
+      "timestamp": "2026-08-24T08:38:51.418Z"
+    }
+  },
+  {
+    "id": "vehicle-00018",
+    "name": "Vehicle 18",
+    "registrationNumber": "RJ141018",
+    "status": "offline",
+    "lastKnownLocation": {
+      "lat": 26.948484,
+      "lng": 76.094109,
+      "timestamp": "2026-08-24T08:38:51.418Z"
+    }
+  },
+  {
+    "id": "vehicle-00019",
+    "name": "Vehicle 19",
+    "registrationNumber": "RJ141019",
+    "status": "offline",
+    "lastKnownLocation": {
+      "lat": 27.334877,
+      "lng": 75.706283,
+      "timestamp": "2026-08-24T08:38:51.419Z"
+    }
+  },
+  {
+    "id": "vehicle-00020",
+    "name": "Vehicle 20",
+    "registrationNumber": "RJ141020",
+    "status": "idle",
+    "lastKnownLocation": {
+      "lat": 26.707862,
+      "lng": 75.714037,
+      "timestamp": "2026-08-24T08:38:51.419Z"
+    }
+  },
+  {
+    "id": "vehicle-00021",
+    "name": "Vehicle 21",
+    "registrationNumber": "RJ141021",
+    "status": "idle",
+    "lastKnownLocation": {
+      "lat": 26.702961,
+      "lng": 75.897385,
+      "timestamp": "2026-08-24T08:38:51.420Z"
+    }
+  },
+  {
+    "id": "vehicle-00022",
+    "name": "Vehicle 22",
+    "registrationNumber": "RJ141022",
+    "status": "active",
+    "lastKnownLocation": {
+      "lat": 26.983009,
+      "lng": 76.027553,
+      "timestamp": "2026-08-24T08:38:51.421Z"
+    }
+  },
+  {
+    "id": "vehicle-00023",
+    "name": "Vehicle 23",
+    "registrationNumber": "RJ141023",
+    "status": "offline",
+    "lastKnownLocation": {
+      "lat": 27.378373,
+      "lng": 75.707441,
+      "timestamp": "2026-08-24T08:38:51.421Z"
+    }
+  },
+  {
+    "id": "vehicle-00024",
+    "name": "Vehicle 24",
+    "registrationNumber": "RJ141024",
+    "status": "offline",
+    "lastKnownLocation": {
+      "lat": 26.711991,
+      "lng": 75.612616,
+      "timestamp": "2026-08-24T08:38:51.421Z"
+    }
+  },
+  {
+    "id": "vehicle-00025",
+    "name": "Vehicle 25",
+    "registrationNumber": "RJ141025",
+    "status": "idle",
+    "lastKnownLocation": {
+      "lat": 27.004781,
+      "lng": 76.221347,
+      "timestamp": "2026-08-24T08:38:51.422Z"
+    }
+  }
+]
