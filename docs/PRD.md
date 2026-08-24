@@ -1,8 +1,9 @@
 # Product Requirements Document (PRD)
+
 ## Fleet Dashboard — SW2627 Data Product Development & Delivery Analytics
 
 **Project Admin:** Shyam
-**Team Members:** Aryan, Pranav
+**Team Members:** Aryan, Praveen
 **Date Updated:** August 20, 2026
 **Status:** Draft — Week 1
 
@@ -11,6 +12,7 @@
 ## 1. Problem Statement
 
 Fleet operators managing large numbers of vehicles (up to 10,000) need a single dashboard to:
+
 - View all vehicles in their fleet
 - See each vehicle's last known location on a map
 - Review a vehicle's trip history
@@ -39,17 +41,17 @@ Existing tools either don't scale well to large fleets or make it hard to quickl
 
 ## 4. Core Features (Must-Have)
 
-| Feature | Description |
-|---|---|
-| Authentication | Users sign in via OAuth before accessing the dashboard |
-| Role-Based Access | Roles (e.g., Admin, Viewer) determine what a user can see/do |
-| Vehicle List | Displays all vehicles, statically generated for fast load at scale |
+| Feature                        | Description                                                                         |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| Authentication                 | Users sign in via OAuth before accessing the dashboard                              |
+| Role-Based Access              | Roles (e.g., Admin, Viewer) determine what a user can see/do                        |
+| Vehicle List                   | Displays all vehicles, statically generated for fast load at scale                  |
 | Infinite Scroll — Vehicle List | List loads more vehicles as the user scrolls, instead of loading all 10,000 at once |
-| Trip History | Per-vehicle list of past trips |
-| Infinite Scroll — Trip History | Trip history loads more entries as the user scrolls |
-| Map View | Displays each vehicle's last known location as a marker |
-| Vehicle Detail Link | Selecting a vehicle from the list shows its trip history and location |
-| Protected Routes | Dashboard pages are inaccessible without a valid session |
+| Trip History                   | Per-vehicle list of past trips                                                      |
+| Infinite Scroll — Trip History | Trip history loads more entries as the user scrolls                                 |
+| Map View                       | Displays each vehicle's last known location as a marker                             |
+| Vehicle Detail Link            | Selecting a vehicle from the list shows its trip history and location               |
+| Protected Routes               | Dashboard pages are inaccessible without a valid session                            |
 
 ---
 
@@ -95,10 +97,10 @@ Existing tools either don't scale well to large fleets or make it hard to quickl
 
 ## 9. Timeline
 
-| Week | Phase |
-|---|---|
-| Week 1 | Planning & PRD |
-| Week 2 | Design (wireframes + UI) |
+| Week     | Phase                    |
+| -------- | ------------------------ |
+| Week 1   | Planning & PRD           |
+| Week 2   | Design (wireframes + UI) |
 | Week 3–5 | Development & Deployment |
 
 ---

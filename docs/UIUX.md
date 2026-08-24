@@ -2,7 +2,7 @@
 ## Fleet Dashboard — SW2627 Data Product Development & Delivery Analytics
 
 **Project Admin:** Shyam
-**Team Members:** Aryan, Pranav
+**Team Members:** Aryan, Praveen
 **Date:** August 20, 2026
 **Status:** Draft — to be completed in Week 2
 
