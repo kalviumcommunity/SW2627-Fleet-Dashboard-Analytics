@@ -2,7 +2,7 @@
 ## Fleet Dashboard — SW2627 Data Product Development & Delivery Analytics
 
 **Project Admin:** Shyam
-**Team Members:** Aryan, Pranav
+**Team Members:** Aryan, Praveen
 **Date:** August 20, 2026
 **Status:** Draft — Week 1
 
@@ -48,7 +48,7 @@
 1. Middleware — redirects unauthenticated users away from `/dashboard` routes
 2. Server-side checks — every API route/server action re-validates session + role before returning/writing data (UI hiding alone is not sufficient)
 
-**Secrets:** Auth secret, OAuth client secret, database URL (if used) stored in environment variables only — never in client-side code.
+**Secrets:** Auth secret, OAuth client secret, database URL (if used), MapmyIndia API Key, Client ID, and Client Secret stored in environment variables only — never in client-side code.
 
 ---
 
