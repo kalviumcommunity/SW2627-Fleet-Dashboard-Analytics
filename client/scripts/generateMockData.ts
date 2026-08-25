@@ -35,10 +35,10 @@ interface Trip {
 
 // Keep mock data small enough for local development and builds.
 // Larger values can make the app exhaust memory when importing JSON files.
-const VEHICLE_COUNT = 25;
+const VEHICLE_COUNT = 10000;
 
 // Number of trips generated for each vehicle.
-const TRIPS_PER_VEHICLE = 200;
+const TRIPS_PER_VEHICLE = 5;
 
 // Jaipur/Rajasthan approximate coordinates.
 // Used as the center for generating realistic mock locations.
