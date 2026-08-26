@@ -1,99 +1,120 @@
-# UI/UX Design Document
+# UI/UX Design Specification Document
+
 ## Fleet Dashboard — SW2627 Data Product Development & Delivery Analytics
 
-**Project Admin:** Shyam
-**Team Members:** Aryan, Praveen
-**Date:** August 20, 2026
-**Status:** Draft — to be completed in Week 2
+**Project Admin:** Shyam  
+**Team Members:** Aryan, Praveen  
+**Date Updated:** August 26, 2026  
+**Status:** In Progress — Phase 2 Design & Implementation  
 
 ---
 
-## 1. Purpose
+## 1. Purpose & UX Vision
 
-Define the user flows, screens, and visual/interaction patterns for the Fleet Dashboard before development begins in Week 3.
-
----
-
-## 2. User Flow
-
-1. User lands on **Login page** → signs in via OAuth
-2. On success, redirected to **Dashboard (Vehicle List)**
-3. User scrolls through vehicle list (infinite scroll)
-4. User selects a vehicle → navigates to **Vehicle Detail** view
-5. Vehicle Detail view shows:
-   - **Trip History** (infinite scroll)
-   - **Map** with last known location marker
-6. User can navigate back to the vehicle list at any point
+The Fleet Dashboard aims to deliver a responsive, clean, and intuitive experience for fleet dispatchers, operations managers, and administrators. The interface prioritizes clear information hierarchy, high-contrast status visualization, and rapid navigation across large vehicle volumes.
 
 ---
 
-## 3. Screens to Design
+## 2. User Flows & Navigation Hierarchy
 
-### 3.1 Login Page
-- OAuth sign-in button(s)
-- Minimal branding, no sensitive info exposed pre-login
-
-### 3.2 Vehicle List (Dashboard Home)
-- Table or card-based list of vehicles
-- Key fields shown: vehicle name/ID, registration number, status (active/idle/offline), last updated time
-- Infinite scroll loading indicator
-- Empty/loading/error states
-
-### 3.3 Vehicle Detail Page
-- Header: vehicle name, registration, status
-- Map section: last known location marker
-- Trip history section: list of trips (date, start/end location, distance), infinite scroll
-- Empty state: "No trips recorded yet"
-
-### 3.4 Map View (component, embedded in Vehicle Detail; optionally also a full fleet map)
-- Marker for last known location
-- Marker clustering if showing multiple vehicles at once (full fleet map, if included)
-- Popup/info card on marker click: vehicle name, last updated time
+```mermaid
+graph TD
+    Landing["Landing Page (/)"] --> Login["Login Page (/login)"]
+    Landing --> Signup["Signup Page (/signup)"]
+    Landing --> Dashboard["Fleet Directory (/dashboard)"]
+    Login --> Dashboard
+    Signup --> Login
+    Dashboard --> VehicleDetail["Vehicle Details (/dashboard/[vehicleId])"]
+    VehicleDetail --> Dashboard
+    Dashboard --> MapPOC["Map SDK POC (/map-test)"]
+```
 
 ---
 
-## 4. Design System Basics (to define in Week 2)
+## 3. Screen Specifications
 
-- **Color palette:** [TBD]
-- **Typography:** [TBD]
-- **Spacing/grid system:** [TBD]
-- **Component library approach:** [TBD — custom components vs UI library]
+### 3.1 Landing Page (`/`)
+- **Header**: Persistent navigation with branding and quick links.
+- **Hero Section**: Welcoming message and direct action links to Login, Signup, and Dashboard.
+- **Footer**: Unified project footer and copyright/team information.
 
----
+### 3.2 Authentication (`/login` & `/signup`)
+- **Login (`/login`)**: Email and password fields with validation, link to registration, and "Back to Home" navigation.
+- **Signup (`/signup`)**: Name, Email, Password, and Phone inputs with role selection and link to login.
 
-## 5. Key Interaction Patterns
+### 3.3 Fleet Directory Dashboard (`/dashboard`)
+- **Overview Header**: Total vehicle count indicator (`10,000 vehicles`) and dashboard title.
+- **Vehicle Grid**: Responsive multi-column grid (`sm:grid-cols-2 lg:grid-cols-3`):
+  - Vehicle Title (e.g. `Vehicle 1`)
+  - Status Badge with color coding (`active`, `idle`, `offline`)
+  - Registration Number badge (e.g. `RJ141001`)
+  - Unique ID label (`vehicle-00001`)
+  - Interactive hover transitions (`hover:shadow-md transition`)
 
-- **Infinite scroll:** Loading skeleton/spinner at list bottom; avoid layout shift when new items load
-- **Status indicators:** Color-coded badges for vehicle status (e.g., green = active, gray = idle, red = offline)
-- **Map interaction:** Click marker to view quick info; link to full vehicle detail page
-- **Navigation:** Persistent way to return to vehicle list from detail view (breadcrumb or back button)
+### 3.4 Vehicle Detail View (`/dashboard/[vehicleId]`)
+- **Header & Breadcrumb**: "← Back to Dashboard" navigation link.
+- **Vehicle Metadata Card Grid**:
+  - Vehicle ID
+  - Registration Number
+  - Current Status (capitalized badge)
+  - Last Known Coordinates (`lat, lng`)
+- **Trip History Table**:
+  - Table Columns: Trip ID, Start Time, End Time, Distance (km), Start Coordinates, End Coordinates.
+  - Formatted timestamps (`toLocaleString()`).
+  - Distance formatted in kilometers (`X.XX km`).
 
----
-
-## 6. Responsive Considerations
-
-- Dashboard should be usable on both desktop (primary) and tablet
-- Map and trip history should stack vertically on smaller screens rather than side-by-side
-
----
-
-## 7. Accessibility Notes
-
-- Sufficient color contrast for status indicators (don't rely on color alone — use icons/labels too)
-- Keyboard navigability for vehicle list and detail views
-- Alt text/labels for map markers where feasible
-
----
-
-## 8. Open Design Questions
-
-- Table view or card view for the vehicle list — which scales/reads better with 10,000 entries?
-- Should there be a full fleet map view (all vehicles at once) in addition to per-vehicle maps?
-- What roles (Admin vs Viewer) see different UI, if any?
+### 3.5 Mappls Vector Map Component (`/map-test` / Detail View)
+- Full-width vector map container.
+- Custom interactive markers for vehicle coordinates.
+- Interactive popups with vehicle metadata.
 
 ---
 
-## 9. Related Documents
+## 4. Design System & Design Tokens
 
-- Product Requirements Document (PRD)
-- Technical Requirements Document (TRD)
+### 4.1 Color Palette
+| Token | Color Code / Utility | Usage |
+|---|---|---|
+| **Background Primary** | `#ffffff` (`bg-white`) / `#f8fafc` | Page backgrounds, card containers |
+| **Border Neutral** | `#e2e8f0` (`border-gray-200`) | Card borders, table dividers |
+| **Text Primary** | `#0f172a` (`text-gray-900`) | Headings, titles, key values |
+| **Text Secondary** | `#64748b` (`text-gray-500`) | Subtitles, metadata labels, timestamps |
+| **Status Active** | `bg-green-100 text-green-700` | Vehicles actively on trips |
+| **Status Idle** | `bg-yellow-100 text-yellow-700` | Vehicles stopped with engine on / parked |
+| **Status Offline** | `bg-gray-200 text-gray-600` | Disconnected or unpowered GPS units |
+| **Interactive Accent** | `#2563eb` (`text-blue-600`) | Links, focus states, primary CTA buttons |
+
+### 4.2 Typography
+- **Font Family**: Inter / Geist / System Sans-serif fallback.
+- **H1 / Main Titles**: `text-3xl font-bold`
+- **H2 / Section Headers**: `text-2xl font-bold` or `text-lg font-semibold`
+- **Body Text**: `text-sm text-gray-500`
+- **Badges & Tags**: `text-xs font-medium`
+
+### 4.3 Spacing & Layout
+- 8pt spatial grid (`p-3`, `p-5`, `p-8`, `gap-4`, `mb-6`, `mb-8`).
+- Maximum container width constrained to `max-w-6xl` for readability on widescreen monitors.
+
+---
+
+## 5. Responsive Design Principles
+
+- **Mobile (< 640px)**: Single column vehicle list, horizontally scrollable trip history table (`overflow-x-auto`).
+- **Tablet (640px – 1024px)**: 2-column grid layout for fleet directory, stacked map and metadata on detail view.
+- **Desktop (1024px+)**: 3-column vehicle cards, full-width data grid with expansive map view.
+
+---
+
+## 6. Accessibility & Usability
+
+- High contrast text-to-background ratios conforming to WCAG AA guidelines.
+- Semantic HTML tags (`<main>`, `<section>`, `<header>`, `<footer>`, `<nav>`, `<table>`).
+- Status indicators combine both distinct color backgrounds AND explicit text labels (`active`, `idle`, `offline`) so information is accessible to color-blind users.
+
+---
+
+## 7. Related Documents
+
+- [Product Requirements Document (PRD)](./PRD.md)
+- [Technical Requirements Document (TRD)](./TRD.md)
+- [Root Readme](../readme.md)
