@@ -1,0 +1,23 @@
+services:
+  fleet-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fleet-dashboard-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      # Pass through environment variables from host or .env file
+      - AUTH_SECRET=${AUTH_SECRET:-}
+      - AUTH_GOOGLE_ID=${AUTH_GOOGLE_ID:-}
+      - AUTH_GOOGLE_SECRET=${AUTH_GOOGLE_SECRET:-}
+      - MAPMYINDIA_API_KEY=${MAPMYINDIA_API_KEY:-}
+    env_file:
+      - path: ./client/.env.local
+        required: false
+      - path: ./.env
+        required: false
