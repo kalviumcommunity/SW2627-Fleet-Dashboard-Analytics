@@ -16,8 +16,22 @@ services:
       - AUTH_GOOGLE_ID=${AUTH_GOOGLE_ID:-}
       - AUTH_GOOGLE_SECRET=${AUTH_GOOGLE_SECRET:-}
       - MAPMYINDIA_API_KEY=${MAPMYINDIA_API_KEY:-}
+      - DATABASE_URL=postgresql://fleetuser:fleetpass@db:5432/fleetdb
     env_file:
       - path: ./client/.env.local
         required: false
       - path: ./.env
         required: false
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    container_name: fleet-dashboard-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=fleetuser
+      - POSTGRES_PASSWORD=fleetpass
+      - POSTGRES_DB=fleetdb
+    ports:
+      - "5432:5432"
