@@ -1,5 +1,6 @@
 import Link from "next/link";
 import vehicles from "@/mock/vehicles.json";
+import Map from "@/components/Map";
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -20,14 +21,26 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function DashboardPage() {
+  const mapMarkers = vehicles.map((v) => ({
+    lat: v.lastKnownLocation.lat,
+    lng: v.lastKnownLocation.lng,
+    popupHtml: `<b>${v.name}</b><br/>Status: ${v.status}`,
+  }));
+
   return (
     <main className="min-h-screen p-8">
       <div className="mx-auto max-w-6xl">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Fleet Dashboard</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              {vehicles.length} vehicles
+            </p>
+          </div>
+        </div>
+
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Fleet Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            {vehicles.length} vehicles
-          </p>
+          <Map markers={mapMarkers} />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -2,11 +2,14 @@
 
 import { useEffect, useRef } from "react";
 
-const MAPPLS_KEY = "plhbrlxwfoffaedkpzmqsaqmmtbmvuphxgsk"
+const MAPPLS_KEY =
+  process.env.NEXT_PUBLIC_MAPPLS_KEY ||
+  process.env.NEXT_PUBLIC_MAPMYINDIA_API_KEY ||
+  "reqpzxosewtfxhrtixlizunwfgebmjwqfjbc";
 
 declare global {
   interface Window {
-    mappls: any;
+    mappls?: any;
   }
 }
 
