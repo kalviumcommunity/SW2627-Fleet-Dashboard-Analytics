@@ -1,6 +1,7 @@
 import vehicles from "@/mock/vehicles.json";
 import trips from "@/mock/trips.json";
 import Link from "next/link";
+import Map from "@/components/Map";
 
 interface PageProps {
   params: Promise<{
@@ -42,8 +43,16 @@ export default async function VehicleDetailPage({
     (trip) => trip.vehicleId === vehicle.id
   );
 
+  const mapMarkers = [
+    {
+      lat: vehicle.lastKnownLocation.lat,
+      lng: vehicle.lastKnownLocation.lng,
+      popupHtml: `<b>${vehicle.name}</b>`,
+    },
+  ];
+
   return (
-    <main className="p-8">
+    <main className="p-8 max-w-6xl mx-auto">
       {/* Back button */}
       <Link
         href="/dashboard"
@@ -54,9 +63,20 @@ export default async function VehicleDetailPage({
 
       {/* Vehicle Details */}
       <section className="mb-8">
-        <h1 className="text-3xl font-bold">
-          {vehicle.name}
-        </h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">
+            {vehicle.name}
+          </h1>
+        </div>
+
+        <div className="mb-8">
+          <Map 
+            markers={mapMarkers} 
+            center={{ lat: vehicle.lastKnownLocation.lat, lng: vehicle.lastKnownLocation.lng }} 
+            zoom={14} 
+            height="300px" 
+          />
+        </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
