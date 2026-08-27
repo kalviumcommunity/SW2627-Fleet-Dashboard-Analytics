@@ -2,110 +2,112 @@
 
 ## Fleet Dashboard — SW2627 Data Product Development & Delivery Analytics
 
-**Project Admin:** Shyam
-**Team Members:** Aryan, Praveen
-**Date Updated:** August 20, 2026
-**Status:** Draft — Week 1
+**Project Admin:** Shyam  
+**Team Members:** Aryan, Praveen  
+**Date Updated:** August 26, 2026  
+**Status:** In Progress — Phase 2 / Implementation  
 
 ---
 
 ## 1. Problem Statement
 
-Fleet operators managing large numbers of vehicles (up to 10,000) need a single dashboard to:
+Fleet operators managing large numbers of vehicles (scale of 10,000+ vehicles) need a unified, high-performance dashboard to:
 
-- View all vehicles in their fleet
-- See each vehicle's last known location on a map
-- Review a vehicle's trip history
+- Browse all vehicles in their fleet without browser freezing or memory exhaustion
+- View each vehicle's last known GPS location on interactive maps
+- Review detailed vehicle trip histories, metrics (distance, timestamps, routes), and status indicators
 
-Existing tools either don't scale well to large fleets or make it hard to quickly move between a vehicle list and its trip/location details. This project aims to build a fast, scalable fleet dashboard that solves this.
+Existing fleet dashboards often degrade when dealing with thousands of records or make transitioning between high-level fleet overviews and granular trip records slow. This project solves this challenge through static generation, client-side pagination / infinite scroll, modern map SDK integration, and an efficient database backend.
 
 ---
 
-## 2. Target User
+## 2. Target Users
 
-- Fleet managers / dispatchers who need to monitor vehicle locations and trip activity
-- Operations teams who need to review historical trips for reporting or auditing
-- Admin users who manage access and permissions for the dashboard
+- **Fleet Managers / Dispatchers**: Need to monitor vehicle status (active, idle, offline) and inspect last known coordinates in real time.
+- **Operations & Audit Teams**: Need to review historical trips, distance logs, and route summaries for compliance and reporting.
+- **System Administrators**: Manage platform access, user credentials, and role-based permissions.
 
 ---
 
 ## 3. Goals
 
-- Allow authenticated users to browse a list of all vehicles in the fleet
-- Allow users to view a vehicle's last known location on a map
-- Allow users to scroll through a vehicle's trip history without performance issues
-- Ensure the dashboard loads quickly even with 10,000 vehicles
-- Ensure only authorized users can access fleet data (role-based access)
+- Allow authenticated users to smoothly browse a fleet directory of 10,000+ vehicles.
+- Enable map-based visualization of last known vehicle locations via Mappls (MapmyIndia) SDK.
+- Allow fast navigation into per-vehicle trip histories without UI lag.
+- Provide secure user authentication and role-based access control (Admin / User) backed by PostgreSQL & Prisma ORM.
+- Containerize the entire application using Docker for consistent local and cloud deployments.
 
 ---
 
 ## 4. Core Features (Must-Have)
 
-| Feature                        | Description                                                                         |
-| ------------------------------ | ----------------------------------------------------------------------------------- |
-| Authentication                 | Users sign in via OAuth before accessing the dashboard                              |
-| Role-Based Access              | Roles (e.g., Admin, Viewer) determine what a user can see/do                        |
-| Vehicle List                   | Displays all vehicles, statically generated for fast load at scale                  |
-| Infinite Scroll — Vehicle List | List loads more vehicles as the user scrolls, instead of loading all 10,000 at once |
-| Trip History                   | Per-vehicle list of past trips                                                      |
-| Infinite Scroll — Trip History | Trip history loads more entries as the user scrolls                                 |
-| Map View                       | Displays each vehicle's last known location as a marker                             |
-| Vehicle Detail Link            | Selecting a vehicle from the list shows its trip history and location               |
-| Protected Routes               | Dashboard pages are inaccessible without a valid session                            |
+| Feature | Description | Status |
+|---|---|---|
+| **User Authentication & RBAC** | User registration and login backed by PostgreSQL, Prisma ORM, and Auth.js with role separation (`ADMIN`, `USER`). | In Progress |
+| **Fleet Directory (Vehicle List)** | Displays 10,000 fleet vehicles with status badges, registration numbers, and unique identifiers. | Implemented |
+| **Vehicle Detail & Trip History** | Dedicated route (`/dashboard/[vehicleId]`) rendering vehicle metadata, GPS coordinates, and historical trip logs. | Implemented |
+| **Map Visualization** | Mappls (MapmyIndia) vector map integration to render interactive markers for vehicle coordinates. | POC Implemented (`/map-test`) |
+| **High-Scale Mock Data Generator** | Automated dataset generation engine (`generateMockData.ts`) synthesizing 10,000 vehicles and 50,000 trips. | Implemented |
+| **Infinite Scroll & Pagination** | Client-side chunking/pagination to ensure smooth scrolling without loading 10k items into the DOM simultaneously. | In Progress |
+| **Containerized Deployment** | Dockerfile and Docker Compose configuration for cross-platform execution. | Implemented |
 
 ---
 
-## 5. Nice-to-Have (Out of Scope for This Sprint)
+## 5. Nice-to-Have (Future Sprints)
 
-- Real-time location updates (live tracking vs last known location)
-- Search/filter vehicles by status, driver, or region
-- Exporting trip history as CSV/PDF
-- Notifications/alerts (e.g., idle vehicle, geofence breach)
-- Multiple organizations/multi-tenant support
+- Live GPS socket stream for real-time moving markers.
+- Advanced vehicle filtering (by status, geofence zone, driver).
+- CSV/PDF trip history export.
+- Fleet health diagnostics and maintenance alerts.
+- Multi-organization tenant isolation.
 
 ---
 
 ## 6. Success Criteria
 
-- Vehicle list page loads quickly even when simulating 10,000 vehicles (via static generation)
-- Infinite scroll works smoothly on both vehicle list and trip history without noticeable lag
-- Map correctly displays last known location for a selected vehicle
-- Unauthenticated users cannot access `/dashboard` or any protected route
-- Only users with the correct role can access admin-level actions
-- Dashboard works end-to-end: login → vehicle list → select vehicle → view trip history + map location
+- Fleet dashboard directory renders without browser stuttering when handling a 10,000-vehicle dataset.
+- Vehicle detail page loads within < 1.5 seconds with full trip history.
+- Map correctly initializes and positions markers on valid coordinates.
+- PostgreSQL database stores user profiles securely with hashed passwords and distinct roles.
+- Docker containers build and launch successfully using `docker-compose up --build`.
 
 ---
 
-## 7. Assumptions
+## 7. Assumptions & Technical Decisions
 
-- Frontend framework: **Next.js** (chosen to support static generation and pair with Auth.js)
-- Authentication: **Auth.js (NextAuth)** with one OAuth provider (e.g., Google or GitHub) for Week 3 build
-- "Last known location" refers to the most recent recorded GPS point per vehicle, not live tracking
-- Map integration will use the **MapmyIndia SDK**
-- Vehicle and trip data source (real API vs mock data) — to be finalized in TRD
-
----
-
-## 8. Open Questions
-
-- ~~Do we need authentication/login?~~ **Resolved:** Yes — using Auth.js with OAuth and role-based access
-- What is the actual data source for vehicles and trips — live API, provided dataset, or mock data?
-- How frequently should "last known location" be considered outdated/stale?
-- What roles do we need beyond Admin/Viewer (e.g., Dispatcher)?
+- **Frontend Framework:** Next.js 16 (App Router) with React 19 and Tailwind CSS v4.
+- **Data Source:** High-volume synthetic mock dataset generated via TypeScript script (`tsx scripts/generateMockData.ts`) generating 10,000 vehicles and 50,000 trips clustered around realistic coordinates.
+- **Database & User Store:** PostgreSQL database configured with Prisma ORM for relational queries, user schemas, and RBAC support.
+- **Map SDK:** Mappls (MapmyIndia) Vector Maps SDK v3.0 (`mappls-web-maps`).
+- **Containerization:** Node.js 20 Alpine multi-stage Docker build.
 
 ---
 
-## 9. Timeline
+## 8. Open Questions & Resolutions
 
-| Week     | Phase                    |
-| -------- | ------------------------ |
-| Week 1   | Planning & PRD           |
-| Week 2   | Design (wireframes + UI) |
-| Week 3–5 | Development & Deployment |
+- ~~What is the actual data source for vehicles and trips?~~  
+  **Resolved:** Synthesized 10,000 vehicles and 50,000 trips using `client/scripts/generateMockData.ts`, persisted in `client/mock/*.json` for scalable frontend testing.
+- ~~How is user authentication and session management stored?~~  
+  **Resolved:** Structured User model in PostgreSQL managed by Prisma ORM (`client/prisma/schema.prisma`), supporting role-based access control.
+- ~~How are maps integrated for Indian geocoordinates?~~  
+  **Resolved:** Mappls Web Maps SDK (`mappls-web-maps`) with API credentials, verified via `/map-test`.
+
+---
+
+## 9. Project Timeline
+
+| Milestone | Phase | Description | Status |
+|---|---|---|---|
+| **Phase 1** | Planning & PRD | Problem statement, team alignment, PRD & TRD drafts | Completed |
+| **Phase 2** | UI/UX & Architecture | Layouts, Mock Data Engine, Prisma Schema, Docker setup | Completed / In Progress |
+| **Phase 3** | Integration & Map Rendering | Full Mappls integration on vehicle detail views, auth enforcement | Active |
+| **Phase 4** | Optimization & Review | Infinite scrolling at 10k scale, load testing, final deployment | Upcoming |
 
 ---
 
 ## 10. Related Documents
 
-- Technical Requirements Document (TRD)
-- UI/UX Design Docs
+- [Technical Requirements Document (TRD)](./TRD.md)
+- [UI/UX Design Document](./UIUX.md)
+- [Project Readme](../readme.md)
+- [Client Readme](../client/README.md)
