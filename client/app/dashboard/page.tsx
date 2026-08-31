@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import vehiclesData from "@/mock/vehicles.json";
 import Map from "@/components/Map";
+import SignOutButton from "@/components/SignOutButton";
+import DeleteTestButton from "@/components/DeleteTestButton";
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -47,7 +49,7 @@ export default function DashboardPage() {
               {filteredVehicles.length} vehicles
             </p>
           </div>
-          <div>
+          <div className="flex items-center gap-3">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -58,8 +60,11 @@ export default function DashboardPage() {
               <option value="idle">Idle</option>
               <option value="offline">Offline</option>
             </select>
+            <SignOutButton />
           </div>
         </div>
+
+        <DeleteTestButton />
 
         <div className="mb-8">
           <Map markers={mapMarkers} />
