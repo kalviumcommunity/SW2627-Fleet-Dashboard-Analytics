@@ -32,24 +32,12 @@
   @apply rounded-lg bg-red-50 p-2 text-sm text-red-600;
 }
 
+.successMessage {
+  @apply rounded-lg bg-green-50 p-2 text-sm text-green-700;
+}
+
 .submitButton {
   @apply w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50;
-}
-
-.divider {
-  @apply my-4 flex items-center gap-2;
-}
-
-.dividerLine {
-  @apply h-px flex-1 bg-gray-200;
-}
-
-.dividerText {
-  @apply text-xs text-gray-400;
-}
-
-.oauthButton {
-  @apply w-full rounded-lg border py-2 text-sm font-medium text-gray-400;
 }
 
 .footerText {
@@ -58,8 +46,4 @@
 
 .footerLink {
   @apply font-medium text-blue-600 hover:underline;
-}
-
-.forgotPasswordRow {
-  @apply mt-2 text-right text-sm;
 }

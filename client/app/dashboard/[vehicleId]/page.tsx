@@ -3,6 +3,16 @@ import trips from "@/mock/trips.json";
 import Link from "next/link";
 import Map from "@/components/Map";
 
+interface Trip {
+  id: string;
+  vehicleId: string;
+  startTime: string;
+  endTime: string;
+  startLocation: { lat: number; lng: number };
+  endLocation: { lat: number; lng: number };
+  distanceKm: number;
+}
+
 interface PageProps {
   params: Promise<{
     vehicleId: string;
@@ -39,7 +49,7 @@ export default async function VehicleDetailPage({
     );
   }
 
-  const vehicleTrips = trips.filter(
+  const vehicleTrips = (trips as Trip[]).filter(
     (trip) => trip.vehicleId === vehicle.id
   );
 
@@ -52,7 +62,7 @@ export default async function VehicleDetailPage({
   ];
 
   return (
-    <main className="p-8 max-w-6xl mx-auto">
+    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
       {/* Back button */}
       <Link
         href="/dashboard"
@@ -63,8 +73,8 @@ export default async function VehicleDetailPage({
 
       {/* Vehicle Details */}
       <section className="mb-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold sm:text-3xl">
             {vehicle.name}
           </h1>
         </div>
@@ -74,7 +84,7 @@ export default async function VehicleDetailPage({
             markers={mapMarkers} 
             center={{ lat: vehicle.lastKnownLocation.lat, lng: vehicle.lastKnownLocation.lng }} 
             zoom={14} 
-            height="300px" 
+            height="clamp(240px, 36vw, 360px)" 
           />
         </div>
 

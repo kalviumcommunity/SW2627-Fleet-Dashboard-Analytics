@@ -41,13 +41,20 @@ export default function Map({
 
   useEffect(() => {
     let isMounted = true;
+    let didFallback = false;
 
-    // Helper to initialize Leaflet (OpenStreetMap) fallback
+    const cleanupMap = () => {
+      if (mapInstanceRef.current && typeof mapInstanceRef.current.remove === "function") {
+        mapInstanceRef.current.remove();
+      }
+      mapInstanceRef.current = null;
+    };
+
     const initLeafletFallback = async () => {
-      if (!containerRef.current || !isMounted) return;
+      if (!containerRef.current || !isMounted || didFallback) return;
+      didFallback = true;
 
       try {
-        // Ensure Leaflet CSS is loaded
         if (!document.getElementById("leaflet-css")) {
           const link = document.createElement("link");
           link.id = "leaflet-css";
@@ -56,7 +63,6 @@ export default function Map({
           document.head.appendChild(link);
         }
 
-        // Ensure Leaflet JS is loaded
         if (!window.L) {
           await new Promise<void>((resolve, reject) => {
             const script = document.createElement("script");
@@ -70,12 +76,12 @@ export default function Map({
 
         if (!isMounted || !containerRef.current || !window.L) return;
 
-        // Cleanup any previous instance
-        if (mapInstanceRef.current && typeof mapInstanceRef.current.remove === "function") {
-          mapInstanceRef.current.remove();
-        }
+        cleanupMap();
 
-        const map = window.L.map(containerRef.current).setView([center.lat, center.lng], zoom);
+        const map = window.L.map(containerRef.current, { zoomControl: false }).setView(
+          [center.lat, center.lng],
+          zoom,
+        );
 
         window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -89,6 +95,12 @@ export default function Map({
           }
         });
 
+        map.whenReady(() => {
+          if (map && typeof map.invalidateSize === "function") {
+            map.invalidateSize();
+          }
+        });
+
         mapInstanceRef.current = map;
         setMapSource("osm");
       } catch (err) {
@@ -96,7 +108,6 @@ export default function Map({
       }
     };
 
-    // Attempt Mappls SDK
     const initMappls = async () => {
       try {
         const mapplsModule = await import("mappls-web-maps");
@@ -107,17 +118,19 @@ export default function Map({
         };
 
         const timeout = setTimeout(() => {
-          if (isMounted && !mapInstanceRef.current) {
+          if (isMounted && !mapInstanceRef.current && !didFallback) {
             console.warn("Mappls SDK timed out, switching to OpenStreetMap...");
             initLeafletFallback();
           }
-        }, 5000);
+        }, 1200);
 
         mapplsClassObject.initialize(MAPPLS_KEY, loadObject, () => {
           clearTimeout(timeout);
-          if (!isMounted || !containerRef.current) return;
+          if (!isMounted || !containerRef.current || didFallback) return;
 
           try {
+            cleanupMap();
+
             const newMap = mapplsClassObject.Map({
               id: containerRef.current.id,
               properties: {
@@ -158,12 +171,9 @@ export default function Map({
 
     return () => {
       isMounted = false;
-      if (mapInstanceRef.current && typeof mapInstanceRef.current.remove === "function") {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
+      cleanupMap();
     };
-  }, [markers, center, zoom]);
+  }, [markers, center.lat, center.lng, zoom]);
 
   return (
     <div className="relative rounded-xl overflow-hidden border shadow-sm bg-gray-50">
