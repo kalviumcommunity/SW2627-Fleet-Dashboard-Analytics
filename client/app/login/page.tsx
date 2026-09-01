@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import styles from "./login.module.css";
+import "./login.css";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,17 +44,17 @@ export default function LoginPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Sign in</h1>
+    <main className="page">
+      <div className="card">
+        <h1 className="title">Sign in</h1>
 
-        <p className={styles.subtitle}>
+        <p className="subtitle">
           Welcome back to the Fleet Dashboard.
         </p>
 
-        <form onSubmit={handleLogin} className={styles.form}>
+        <form onSubmit={handleLogin} className="form">
           <div>
-            <label htmlFor="email" className={styles.label}>
+            <label htmlFor="email" className="label">
               Email
             </label>
 
@@ -65,13 +65,13 @@ export default function LoginPage() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={styles.input}
+              className="input"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className={styles.label}>
+            <label htmlFor="password" className="label">
               Password
             </label>
 
@@ -82,13 +82,19 @@ export default function LoginPage() {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={styles.input}
+              className="input"
               placeholder="••••••••"
             />
+
+            <div className="forgotPasswordRow">
+              <Link href="/forgot-password" className="link">
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {error && (
-            <p className={styles.errorMessage} role="alert">
+            <p className="errorMessage" role="alert">
               {error}
             </p>
           )}
@@ -96,30 +102,30 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className={styles.submitButton}
+            className="submitButton"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
-        <div className={styles.divider}>
-          <div className={styles.dividerLine} />
-          <span className={styles.dividerText}>or</span>
-          <div className={styles.dividerLine} />
+        <div className="divider">
+          <div className="dividerLine" />
+          <span className="dividerText">or</span>
+          <div className="dividerLine" />
         </div>
 
         <button
           type="button"
           disabled
-          className={styles.oauthButton}
+          className="oauthButton"
           title="OAuth provider setup pending"
         >
           Continue with Google
         </button>
 
-        <p className={styles.footerText}>
+        <p className="footerText">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className={styles.link}>
+          <Link href="/signup" className="link">
             Sign up
           </Link>
         </p>

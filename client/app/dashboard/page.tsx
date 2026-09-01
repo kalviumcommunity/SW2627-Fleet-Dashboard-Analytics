@@ -1,11 +1,9 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
-import vehiclesData from "@/mock/vehicles.json";
+import vehicles from "@/mock/vehicles.json";
 import Map from "@/components/Map";
 import SignOutButton from "@/components/SignOutButton";
-import DeleteTestButton from "@/components/DeleteTestButton";
+import { createClient } from "@/lib/supabase/server";
+import { getUserRole } from "@/lib/supabase/getUserRole";
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -25,53 +23,54 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export default function DashboardPage() {
-  const [statusFilter, setStatusFilter] = useState("all");
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const role = await getUserRole();
 
-  const filteredVehicles =
-    statusFilter === "all"
-      ? vehiclesData
-      : vehiclesData.filter((v) => v.status === statusFilter);
-
-  const mapMarkers = filteredVehicles.map((v) => ({
+  const mapMarkers = vehicles.map((v) => ({
     lat: v.lastKnownLocation.lat,
     lng: v.lastKnownLocation.lng,
     popupHtml: `<b>${v.name}</b><br/>Status: ${v.status}`,
   }));
 
   return (
-    <main className="min-h-screen p-8">
+    <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Fleet Dashboard</h1>
+            <h1 className="text-2xl font-bold sm:text-3xl">Fleet Dashboard</h1>
             <p className="mt-1 text-sm text-gray-500">
-              {filteredVehicles.length} vehicles
+              {vehicles.length} vehicles
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="idle">Idle</option>
-              <option value="offline">Offline</option>
-            </select>
+
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+            {user && (
+              <span className="text-sm text-gray-500">
+                {user.email} {role && `(${role})`}
+              </span>
+            )}
+            {role === "admin" && (
+              <Link
+                href="/dashboard/admin"
+                className="text-sm font-medium text-blue-600 hover:underline"
+              >
+                Admin Panel
+              </Link>
+            )}
             <SignOutButton />
           </div>
         </div>
 
-        <DeleteTestButton />
-
         <div className="mb-8">
-          <Map markers={mapMarkers} />
+          <Map markers={mapMarkers} height="clamp(260px, 42vw, 460px)" />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredVehicles.map((vehicle) => (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {vehicles.map((vehicle) => (
             <Link
               key={vehicle.id}
               href={`/dashboard/${vehicle.id}`}
