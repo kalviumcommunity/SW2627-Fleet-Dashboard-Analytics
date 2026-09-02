@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "generate:mock": "tsx scripts/generateMockData.ts",
+    "seed:supabase": "tsx scripts/seedSupabase.ts",
+    "test:rls": "tsx scripts/testRLS.ts",
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
