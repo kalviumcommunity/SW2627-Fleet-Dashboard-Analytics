@@ -1,5 +1,3 @@
-import vehicles from "@/mock/vehicles.json";
-import trips from "@/mock/trips.json";
 import Link from "next/link";
 import Map from "@/components/Map";
 import StatusBadge from "@/components/StatusBadge";
@@ -30,6 +28,7 @@ export default async function VehicleDetailPage({
   params,
 }: PageProps) {
   const { vehicleId } = await params;
+  const supabase = await createClient();
 
   // Find vehicle
   const vehicle = vehicles.find(
@@ -66,8 +65,8 @@ export default async function VehicleDetailPage({
   // Map marker
   const mapMarkers = [
     {
-      lat: vehicle.lastKnownLocation.lat,
-      lng: vehicle.lastKnownLocation.lng,
+      lat: vehicle.lat || 0,
+      lng: vehicle.lng || 0,
       popupHtml: `<b>${vehicle.name}</b>`,
     },
   ];

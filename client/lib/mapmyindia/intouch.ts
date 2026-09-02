@@ -71,7 +71,7 @@ export async function getMapplsAccessToken(): Promise<string | null> {
 /**
  * Fetch live telematics / device locations from InTouch Platform
  */
-export async function getInTouchDevicePositions(): Promise<any[]> {
+export async function getInTouchDevicePositions(): Promise<Record<string, unknown>[]> {
   const token = await getMapplsAccessToken();
 
   if (!token) {
