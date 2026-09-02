@@ -1,27 +1,9 @@
 import Link from "next/link";
-import vehicles from "@/mock/vehicles.json";
 import Map from "@/components/Map";
 import SignOutButton from "@/components/SignOutButton";
+import VehicleList from "@/components/VehicleList";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRole } from "@/lib/supabase/getUserRole";
-
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    active: "bg-green-100 text-green-700",
-    idle: "bg-yellow-100 text-yellow-700",
-    offline: "bg-gray-200 text-gray-600",
-  };
-
-  return (
-    <span
-      className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${
-        colors[status] ?? "bg-gray-100 text-gray-700"
-      }`}
-    >
-      {status}
-    </span>
-  );
-}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -30,7 +12,33 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   const role = await getUserRole();
 
-  const mapMarkers = vehicles.map((v) => ({
+  // Fetch vehicles from Supabase
+  const { data: vehicles, error: vehiclesError } = await supabase
+    .from("vehicles")
+    .select("id, name, plate_number, status, lat, lng, created_at");
+
+  if (vehiclesError) {
+    return (
+      <main className="p-8">
+        <h1 className="text-2xl font-bold">Error Loading Vehicles</h1>
+        <p className="mt-2 text-red-600">{vehiclesError.message}</p>
+      </main>
+    );
+  }
+
+  // Transform Supabase data to match VehicleList component interface
+  const mappedVehicles = (vehicles || []).map((v) => ({
+    id: String(v.id),
+    name: v.name,
+    registrationNumber: v.plate_number,
+    status: (v.status as "active" | "idle" | "offline") || "offline",
+    lastKnownLocation: {
+      lat: v.lat || 0,
+      lng: v.lng || 0,
+    },
+  }));
+
+  const mapMarkers = mappedVehicles.map((v) => ({
     lat: v.lastKnownLocation.lat,
     lng: v.lastKnownLocation.lng,
     popupHtml: `<b>${v.name}</b><br/>Status: ${v.status}`,
@@ -43,7 +51,7 @@ export default async function DashboardPage() {
           <div>
             <h1 className="text-2xl font-bold sm:text-3xl">Fleet Dashboard</h1>
             <p className="mt-1 text-sm text-gray-500">
-              {vehicles.length} vehicles
+              {mappedVehicles.length} vehicles
             </p>
           </div>
 
@@ -69,26 +77,7 @@ export default async function DashboardPage() {
           <Map markers={mapMarkers} height="clamp(260px, 42vw, 460px)" />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {vehicles.map((vehicle) => (
-            <Link
-              key={vehicle.id}
-              href={`/dashboard/${vehicle.id}`}
-              className="rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md"
-            >
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">{vehicle.name}</h2>
-                <StatusBadge status={vehicle.status} />
-              </div>
-
-              <p className="mt-2 text-sm text-gray-500">
-                {vehicle.registrationNumber}
-              </p>
-
-              <p className="mt-1 text-xs text-gray-400">{vehicle.id}</p>
-            </Link>
-          ))}
-        </div>
+        <VehicleList vehicles={mappedVehicles} />
       </div>
     </main>
   );

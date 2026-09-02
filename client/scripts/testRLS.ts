@@ -4,14 +4,14 @@ import * as dotenv from "dotenv";
  
 dotenv.config({ path: ".env.local" });
  
-const SUPABASE_URL = process.env.Project_URL as string;
-const ANON_KEY = process.env.anon_public_key as string;
+const SUPABASE_URL = process.env.Project_URL || process.env.NEXT_PUBLIC_SUPABASE_URL as string;
+const ANON_KEY = process.env.anon_public_key || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
  
-const TEST_EMAIL = "parveen.dhaka.s.124@kalvium.community"; 
-const TEST_PASSWORD = "1234"; 
+const TEST_EMAIL = "shyam.sharma.s.124@kalvium.community"; 
+const TEST_PASSWORD = "shyamsharma"; 
  
 if (!SUPABASE_URL || !ANON_KEY) {
-  throw new Error("Missing Project_URL or anon_public_key in .env.local");
+  throw new Error("Missing Project_URL (or NEXT_PUBLIC_SUPABASE_URL) or anon_public_key (or NEXT_PUBLIC_SUPABASE_ANON_KEY) in .env.local");
 }
  
 async function testAnonymousRead() {
