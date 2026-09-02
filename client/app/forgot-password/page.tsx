@@ -3,25 +3,23 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import "./signup.css";
+import "./forgot-password.css";
 
-export default function SignupPage() {
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSignup(e: React.FormEvent) {
+  async function handleReset(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setMessage(null);
     setLoading(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     setLoading(false);
@@ -31,16 +29,18 @@ export default function SignupPage() {
       return;
     }
 
-    setMessage("Check your email to confirm your account before signing in.");
+    setMessage("Check your email for a password reset link.");
   }
 
   return (
     <main className="page">
       <div className="card">
-        <h1 className="title">Create an account</h1>
-        <p className="subtitle">Get started with the Fleet Dashboard.</p>
+        <h1 className="title">Reset your password</h1>
+        <p className="subtitle">
+          Enter your email and we&apos;ll send you a reset link.
+        </p>
 
-        <form onSubmit={handleSignup} className="form">
+        <form onSubmit={handleReset} className="form">
           <div>
             <label className="label">Email</label>
             <input
@@ -53,32 +53,17 @@ export default function SignupPage() {
             />
           </div>
 
-          <div>
-            <label className="label">Password</label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input"
-              placeholder="At least 6 characters"
-            />
-          </div>
-
           {error && <p className="errorMessage">{error}</p>}
-
           {message && <p className="successMessage">{message}</p>}
 
           <button type="submit" disabled={loading} className="submitButton">
-            {loading ? "Creating account..." : "Sign up"}
+            {loading ? "Sending..." : "Send reset link"}
           </button>
         </form>
 
         <p className="footerText">
-          Already have an account?{" "}
           <Link href="/login" className="footerLink">
-            Sign in
+            Back to sign in
           </Link>
         </p>
       </div>

@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+.page {
+  @apply flex min-h-screen items-center justify-center p-8;
+}
+
+.card {
+  @apply w-full max-w-sm rounded-xl border bg-white p-8 shadow-sm;
+}
+
+.title {
+  @apply text-2xl font-bold;
+}
+
+.subtitle {
+  @apply mt-1 text-sm text-gray-500;
+}
+
+.form {
+  @apply mt-6 space-y-4;
+}
+
+.label {
+  @apply block text-sm font-medium;
+}
+
+.input {
+  @apply mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.errorMessage {
+  @apply rounded-lg bg-red-50 p-2 text-sm text-red-600;
+}
+
+.successMessage {
+  @apply rounded-lg bg-green-50 p-2 text-sm text-green-700;
+}
+
+.submitButton {
+  @apply w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50;
+}
+
+.footerText {
+  @apply mt-6 text-center text-sm text-gray-500;
+}
+
+.footerLink {
+  @apply font-medium text-blue-600 hover:underline;
+}

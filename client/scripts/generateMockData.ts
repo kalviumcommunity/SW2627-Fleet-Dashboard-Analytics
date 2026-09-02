@@ -38,7 +38,7 @@ interface Trip {
 const VEHICLE_COUNT = 10000;
 
 // Number of trips generated for each vehicle.
-const TRIPS_PER_VEHICLE = 5;
+const TRIPS_PER_VEHICLE = 3;
 
 // Jaipur/Rajasthan approximate coordinates.
 // Used as the center for generating realistic mock locations.
