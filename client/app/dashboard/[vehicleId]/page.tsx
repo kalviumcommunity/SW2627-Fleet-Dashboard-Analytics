@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Map from "@/components/Map";
 import StatusBadge from "@/components/StatusBadge";
+import { createClient } from "@/lib/supabase/server";
 
 interface Trip {
   id: string;
@@ -30,13 +31,15 @@ export default async function VehicleDetailPage({
   const { vehicleId } = await params;
   const supabase = await createClient();
 
-  // Find vehicle
-  const vehicle = vehicles.find(
-    (vehicle) => vehicle.id === vehicleId
-  );
+  // Fetch vehicle from Supabase
+  const { data: vehicleData } = await supabase
+    .from("vehicles")
+    .select("id, name, plate_number, status, lat, lng, created_at")
+    .eq("id", vehicleId)
+    .single();
 
   // Vehicle not found
-  if (!vehicle) {
+  if (!vehicleData) {
     return (
       <main className="p-4 sm:p-8">
         <h1 className="text-2xl font-bold">
@@ -57,16 +60,45 @@ export default async function VehicleDetailPage({
     );
   }
 
-  // Get trips for this vehicle
-  const vehicleTrips = (trips as Trip[]).filter(
-    (trip) => trip.vehicleId === vehicle.id
-  );
+  const vehicle = {
+    id: String(vehicleData.id),
+    name: vehicleData.name,
+    registrationNumber: vehicleData.plate_number,
+    status: vehicleData.status || "offline",
+    lastKnownLocation: {
+      lat: vehicleData.lat || 0,
+      lng: vehicleData.lng || 0,
+    },
+  };
+
+  // Fetch trips for this vehicle from Supabase
+  const { data: tripsData } = await supabase
+    .from("trips")
+    .select("*")
+    .eq("vehicle_id", vehicleId)
+    .order("start_time", { ascending: false });
+
+  const vehicleTrips: Trip[] = (tripsData || []).map((trip) => ({
+    id: String(trip.id),
+    vehicleId: String(trip.vehicle_id),
+    startTime: trip.start_time,
+    endTime: trip.end_time,
+    startLocation: {
+      lat: trip.start_lat ?? 0,
+      lng: trip.start_lng ?? 0,
+    },
+    endLocation: {
+      lat: trip.end_lat ?? 0,
+      lng: trip.end_lng ?? 0,
+    },
+    distanceKm: Number(trip.distance ?? 0),
+  }));
 
   // Map marker
   const mapMarkers = [
     {
-      lat: vehicle.lat || 0,
-      lng: vehicle.lng || 0,
+      lat: vehicle.lastKnownLocation.lat,
+      lng: vehicle.lastKnownLocation.lng,
       popupHtml: `<b>${vehicle.name}</b>`,
     },
   ];
