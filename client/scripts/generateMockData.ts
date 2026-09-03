@@ -35,7 +35,7 @@ interface Trip {
 
 // Keep mock data small enough for local development and builds.
 // Larger values can make the app exhaust memory when importing JSON files.
-const VEHICLE_COUNT = 10000;
+const VEHICLE_COUNT = 100;
 
 // Number of trips generated for each vehicle.
 const TRIPS_PER_VEHICLE = 3;
