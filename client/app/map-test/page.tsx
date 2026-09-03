@@ -7,7 +7,22 @@ export default function MapTestPage() {
     {
       lat: 28.6129,
       lng: 77.2295,
-      popupHtml: "<b>Hardcoded POC marker</b><br/>New Delhi",
+      popupHtml: "<b>Vehicle 1</b><br/>New Delhi Central",
+    },
+    {
+      lat: 28.62,
+      lng: 77.21,
+      popupHtml: "<b>Vehicle 2</b><br/>Connaught Place",
+    },
+    {
+      lat: 28.605,
+      lng: 77.24,
+      popupHtml: "<b>Vehicle 3</b><br/>India Gate East",
+    },
+    {
+      lat: 28.635,
+      lng: 77.22,
+      popupHtml: "<b>Vehicle 4</b><br/>Pahar Ganj",
     },
   ];
 
