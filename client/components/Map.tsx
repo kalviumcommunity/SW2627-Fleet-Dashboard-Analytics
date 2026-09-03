@@ -2,10 +2,12 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
-const MAPPLS_KEY =
+const rawKey =
   process.env.NEXT_PUBLIC_MAPPLS_KEY ||
   process.env.NEXT_PUBLIC_MAPMYINDIA_API_KEY ||
   "reqpzxosewtfxhrtixlizunwfgebmjwqfjbc";
+
+const MAPPLS_KEY = rawKey.replace(/['"]+/g, "").trim();
 
 declare global {
   interface Window {
@@ -45,7 +47,11 @@ export default function Map({
 
     const cleanupMap = () => {
       if (mapInstanceRef.current && typeof mapInstanceRef.current.remove === "function") {
-        mapInstanceRef.current.remove();
+        try {
+          mapInstanceRef.current.remove();
+        } catch (e) {
+          console.warn("Error removing previous map instance:", e);
+        }
       }
       mapInstanceRef.current = null;
     };
@@ -119,10 +125,10 @@ export default function Map({
 
         const timeout = setTimeout(() => {
           if (isMounted && !mapInstanceRef.current && !didFallback) {
-            console.warn("Mappls SDK timed out, switching to OpenStreetMap...");
+            console.warn("Mappls SDK timed out, switching to OpenStreetMap fallback...");
             initLeafletFallback();
           }
-        }, 1200);
+        }, 8000);
 
         mapplsClassObject.initialize(MAPPLS_KEY, loadObject, () => {
           clearTimeout(timeout);
@@ -139,20 +145,30 @@ export default function Map({
               },
             });
 
-            newMap.on("load", () => {
+            const renderMarkers = () => {
               markers.forEach((marker) => {
                 if (window.mappls) {
-                  new window.mappls.Marker({
-                    map: newMap,
-                    position: {
-                      lat: marker.lat,
-                      lng: marker.lng,
-                    },
-                    popupHtml: marker.popupHtml,
-                  });
+                  try {
+                    new window.mappls.Marker({
+                      map: newMap,
+                      position: {
+                        lat: marker.lat,
+                        lng: marker.lng,
+                      },
+                      popupHtml: marker.popupHtml,
+                    });
+                  } catch (markerErr) {
+                    console.warn("Failed to create Mappls marker:", markerErr);
+                  }
                 }
               });
-            });
+            };
+
+            if (newMap && typeof newMap.on === "function") {
+              newMap.on("load", renderMarkers);
+            } else {
+              renderMarkers();
+            }
 
             mapInstanceRef.current = newMap;
             setMapSource("mappls");
