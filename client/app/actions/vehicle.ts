@@ -12,6 +12,10 @@ export async function deleteVehicle(vehicleId: string) {
   }
 
   const supabase = await createClient();
+
+  // Clean up associated trips first if any exist to prevent foreign key constraint violations
+  await supabase.from("trips").delete().eq("vehicle_id", vehicleId);
+
   const { error } = await supabase.from("vehicles").delete().eq("id", vehicleId);
 
   if (error) {
@@ -23,7 +27,7 @@ export async function deleteVehicle(vehicleId: string) {
   return { success: true };
 }
 
-interface AddVehicleInput {
+export interface AddVehicleInput {
   name: string;
   registrationNumber: string;
   status: "active" | "idle" | "offline";
@@ -46,6 +50,8 @@ export async function addVehicle(input: AddVehicleInput) {
     status: input.status,
     lat: input.lat,
     lng: input.lng,
+    location_updated_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
   });
 
   if (error) {

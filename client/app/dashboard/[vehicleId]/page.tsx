@@ -3,102 +3,65 @@ import Map from "@/components/Map";
 import StatusBadge from "@/components/StatusBadge";
 import { createClient } from "@/lib/supabase/server";
 
-interface Trip {
-  id: string;
-  vehicleId: string;
-  startTime: string;
-  endTime: string;
-  startLocation: {
-    lat: number;
-    lng: number;
-  };
-  endLocation: {
-    lat: number;
-    lng: number;
-  };
-  distanceKm: number;
-}
-
 interface PageProps {
   params: Promise<{
     vehicleId: string;
   }>;
 }
 
-export default async function VehicleDetailPage({
-  params,
-}: PageProps) {
+export default async function VehicleDetailPage({ params }: PageProps) {
   const { vehicleId } = await params;
   const supabase = await createClient();
 
-  // Fetch vehicle from Supabase
-  const { data: vehicleData } = await supabase
+  // Fetch the vehicle from Supabase
+  const { data: vehicle, error: vehicleError } = await supabase
     .from("vehicles")
     .select("id, name, plate_number, status, lat, lng, created_at")
     .eq("id", vehicleId)
     .single();
 
-  // Vehicle not found
-  if (!vehicleData) {
+  // Vehicle not found (or invalid id / query error)
+  if (vehicleError || !vehicle) {
     return (
       <main className="p-4 sm:p-8">
-        <h1 className="text-2xl font-bold">
-          Vehicle Not Found
-        </h1>
+        <h1 className="text-2xl font-bold">Vehicle Not Found</h1>
 
         <p className="mt-2 text-gray-600">
           No vehicle exists with ID: {vehicleId}
         </p>
 
-        <Link
-          href="/dashboard"
-          className="mt-4 inline-block underline"
-        >
+        <Link href="/dashboard" className="mt-4 inline-block underline">
           Back to Dashboard
         </Link>
       </main>
     );
   }
 
-  const vehicle = {
-    id: String(vehicleData.id),
-    name: vehicleData.name,
-    registrationNumber: vehicleData.plate_number,
-    status: vehicleData.status || "offline",
-    lastKnownLocation: {
-      lat: vehicleData.lat || 0,
-      lng: vehicleData.lng || 0,
-    },
-  };
-
   // Fetch trips for this vehicle from Supabase
-  const { data: tripsData } = await supabase
+  const { data: tripsData, error: tripsError } = await supabase
     .from("trips")
-    .select("*")
-    .eq("vehicle_id", vehicleId)
+    .select(
+      "id, start_time, end_time, distance, start_lat, start_lng, end_lat, end_lng, status"
+    )
+    .eq("vehicle_id", vehicle.id)
     .order("start_time", { ascending: false });
 
-  const vehicleTrips: Trip[] = (tripsData || []).map((trip) => ({
-    id: String(trip.id),
-    vehicleId: String(trip.vehicle_id),
-    startTime: trip.start_time,
-    endTime: trip.end_time,
-    startLocation: {
-      lat: trip.start_lat ?? 0,
-      lng: trip.start_lng ?? 0,
-    },
-    endLocation: {
-      lat: trip.end_lat ?? 0,
-      lng: trip.end_lng ?? 0,
-    },
-    distanceKm: Number(trip.distance ?? 0),
-  }));
+  if (tripsError) {
+    return (
+      <main className="p-4 sm:p-8">
+        <h1 className="text-2xl font-bold">Error Loading Trips</h1>
+        <p className="mt-2 text-red-600">{tripsError.message}</p>
+      </main>
+    );
+  }
 
-  // Map marker
+  const vehicleTrips = tripsData || [];
+
+  // Map marker for this vehicle's last known location
   const mapMarkers = [
     {
-      lat: vehicle.lastKnownLocation.lat,
-      lng: vehicle.lastKnownLocation.lng,
+      lat: vehicle.lat || 0,
+      lng: vehicle.lng || 0,
       popupHtml: `<b>${vehicle.name}</b>`,
     },
   ];
@@ -116,9 +79,7 @@ export default async function VehicleDetailPage({
       {/* Vehicle Details */}
       <section className="mb-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold sm:text-3xl">
-            {vehicle.name}
-          </h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">{vehicle.name}</h1>
         </div>
 
         {/* Map */}
@@ -126,8 +87,8 @@ export default async function VehicleDetailPage({
           <Map
             markers={mapMarkers}
             center={{
-              lat: vehicle.lastKnownLocation.lat,
-              lng: vehicle.lastKnownLocation.lng,
+              lat: vehicle.lat || 0,
+              lng: vehicle.lng || 0,
             }}
             zoom={14}
             height="clamp(240px, 36vw, 360px)"
@@ -138,32 +99,21 @@ export default async function VehicleDetailPage({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Vehicle ID */}
           <div className="min-w-0">
-            <p className="text-sm text-gray-500">
-              Vehicle ID
-            </p>
-
-            <p className="mt-1 break-words font-medium">
-              {vehicle.id}
-            </p>
+            <p className="text-sm text-gray-500">Vehicle ID</p>
+            <p className="mt-1 break-words font-medium">{vehicle.id}</p>
           </div>
 
           {/* Registration Number */}
           <div className="min-w-0">
-            <p className="text-sm text-gray-500">
-              Registration Number
-            </p>
-
+            <p className="text-sm text-gray-500">Registration Number</p>
             <p className="mt-1 break-words font-medium">
-              {vehicle.registrationNumber}
+              {vehicle.plate_number}
             </p>
           </div>
 
           {/* Status */}
           <div>
-            <p className="text-sm text-gray-500">
-              Status
-            </p>
-
+            <p className="text-sm text-gray-500">Status</p>
             <div className="mt-1">
               <StatusBadge status={vehicle.status} />
             </div>
@@ -171,13 +121,9 @@ export default async function VehicleDetailPage({
 
           {/* Last Known Location */}
           <div className="min-w-0">
-            <p className="text-sm text-gray-500">
-              Last Known Location
-            </p>
-
+            <p className="text-sm text-gray-500">Last Known Location</p>
             <p className="mt-1 break-words font-medium">
-              {vehicle.lastKnownLocation.lat},{" "}
-              {vehicle.lastKnownLocation.lng}
+              {vehicle.lat}, {vehicle.lng}
             </p>
           </div>
         </div>
@@ -187,10 +133,7 @@ export default async function VehicleDetailPage({
       <section>
         {/* Trip History Heading */}
         <div className="mb-4">
-          <h2 className="text-2xl font-bold">
-            Trip History
-          </h2>
-
+          <h2 className="text-2xl font-bold">Trip History</h2>
           <p className="mt-1 text-sm text-gray-500 sm:text-base">
             {vehicleTrips.length} trips found
           </p>
@@ -199,10 +142,7 @@ export default async function VehicleDetailPage({
         {/* Empty State */}
         {vehicleTrips.length === 0 ? (
           <div className="rounded-lg border border-gray-200 p-6 text-center sm:p-8">
-            <p className="font-medium text-gray-700">
-              No trips recorded yet
-            </p>
-
+            <p className="font-medium text-gray-700">No trips recorded yet</p>
             <p className="mt-1 text-sm text-gray-500">
               There are no trips available for this vehicle.
             </p>
@@ -212,7 +152,6 @@ export default async function VehicleDetailPage({
             {/* ================================ */}
             {/* DESKTOP TABLE */}
             {/* ================================ */}
-
             <div className="hidden overflow-x-auto rounded-lg border border-gray-200 md:block">
               <table className="w-full min-w-[900px] border-collapse">
                 <thead>
@@ -220,23 +159,18 @@ export default async function VehicleDetailPage({
                     <th className="p-3 text-left text-sm font-semibold">
                       Trip ID
                     </th>
-
                     <th className="p-3 text-left text-sm font-semibold">
                       Start Time
                     </th>
-
                     <th className="p-3 text-left text-sm font-semibold">
                       End Time
                     </th>
-
                     <th className="p-3 text-left text-sm font-semibold">
                       Distance
                     </th>
-
                     <th className="p-3 text-left text-sm font-semibold">
                       Start Location
                     </th>
-
                     <th className="p-3 text-left text-sm font-semibold">
                       End Location
                     </th>
@@ -245,44 +179,35 @@ export default async function VehicleDetailPage({
 
                 <tbody>
                   {vehicleTrips.map((trip) => (
-                    <tr
-                      key={trip.id}
-                      className="border-b last:border-b-0"
-                    >
-                      {/* Trip ID */}
-                      <td className="p-3">
-                        {trip.id}
+                    <tr key={trip.id} className="border-b last:border-b-0">
+                      <td className="p-3">{trip.id}</td>
+
+                      <td className="whitespace-nowrap p-3">
+                        {trip.start_time
+                          ? new Date(trip.start_time).toLocaleString()
+                          : "—"}
                       </td>
 
-                      {/* Start Time */}
                       <td className="whitespace-nowrap p-3">
-                        {new Date(
-                          trip.startTime
-                        ).toLocaleString()}
+                        {trip.end_time
+                          ? new Date(trip.end_time).toLocaleString()
+                          : "—"}
                       </td>
 
-                      {/* End Time */}
                       <td className="whitespace-nowrap p-3">
-                        {new Date(
-                          trip.endTime
-                        ).toLocaleString()}
+                        {trip.distance != null ? `${trip.distance} km` : "—"}
                       </td>
 
-                      {/* Distance */}
                       <td className="whitespace-nowrap p-3">
-                        {trip.distanceKm} km
+                        {trip.start_lat != null && trip.start_lng != null
+                          ? `${trip.start_lat}, ${trip.start_lng}`
+                          : "—"}
                       </td>
 
-                      {/* Start Location */}
                       <td className="whitespace-nowrap p-3">
-                        {trip.startLocation.lat},{" "}
-                        {trip.startLocation.lng}
-                      </td>
-
-                      {/* End Location */}
-                      <td className="whitespace-nowrap p-3">
-                        {trip.endLocation.lat},{" "}
-                        {trip.endLocation.lng}
+                        {trip.end_lat != null && trip.end_lng != null
+                          ? `${trip.end_lat}, ${trip.end_lng}`
+                          : "—"}
                       </td>
                     </tr>
                   ))}
@@ -293,84 +218,72 @@ export default async function VehicleDetailPage({
             {/* ================================ */}
             {/* MOBILE CARDS */}
             {/* ================================ */}
-
             <div className="space-y-4 md:hidden">
               {vehicleTrips.map((trip) => (
                 <div
                   key={trip.id}
                   className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
                 >
-                  {/* Trip ID */}
                   <div className="mb-4 border-b pb-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                       Trip ID
                     </p>
-
                     <p className="mt-1 font-semibold text-gray-900">
                       {trip.id}
                     </p>
                   </div>
 
-                  {/* Trip Details */}
                   <div className="space-y-4">
-                    {/* Start Time */}
                     <div>
                       <p className="text-xs font-medium text-gray-500">
                         Start Time
                       </p>
-
                       <p className="mt-1 text-sm text-gray-900">
-                        {new Date(
-                          trip.startTime
-                        ).toLocaleString()}
+                        {trip.start_time
+                          ? new Date(trip.start_time).toLocaleString()
+                          : "—"}
                       </p>
                     </div>
 
-                    {/* End Time */}
                     <div>
                       <p className="text-xs font-medium text-gray-500">
                         End Time
                       </p>
-
                       <p className="mt-1 text-sm text-gray-900">
-                        {new Date(
-                          trip.endTime
-                        ).toLocaleString()}
+                        {trip.end_time
+                          ? new Date(trip.end_time).toLocaleString()
+                          : "—"}
                       </p>
                     </div>
 
-                    {/* Distance */}
                     <div>
                       <p className="text-xs font-medium text-gray-500">
                         Distance
                       </p>
-
                       <p className="mt-1 text-sm font-medium text-gray-900">
-                        {trip.distanceKm} km
+                        {trip.distance != null ? `${trip.distance} km` : "—"}
                       </p>
                     </div>
 
-                    {/* Start Location */}
                     <div>
                       <p className="text-xs font-medium text-gray-500">
                         Start Location
                       </p>
-
                       <p className="mt-1 break-words text-sm text-gray-900">
-                        {trip.startLocation.lat},{" "}
-                        {trip.startLocation.lng}
+                        {trip.start_lat != null && trip.start_lng != null
+                          ? `${trip.start_lat}, ${trip.start_lng}`
+                          : "—"}
                       </p>
                     </div>
 
-                    {/* End Location */}
                     <div>
                       <p className="text-xs font-medium text-gray-500">
                         End Location
                       </p>
-
                       <p className="mt-1 break-words text-sm text-gray-900">
-                        {trip.endLocation.lat},{" "}
-                        {trip.endLocation.lng}
+                        {trip.end_lat != null && trip.end_lng != null
+                          ? `${trip.end_lat}, ${trip.end_lng}`
+                          : "—"}
                       </p>
                     </div>
                   </div>
