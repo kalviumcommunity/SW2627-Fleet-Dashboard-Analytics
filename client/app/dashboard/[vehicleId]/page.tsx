@@ -60,8 +60,8 @@ export default async function VehicleDetailPage({ params }: PageProps) {
   // Map marker for this vehicle's last known location
   const mapMarkers = [
     {
-      lat: vehicle.lat || 0,
-      lng: vehicle.lng || 0,
+      lat: vehicle.lastKnownLocation.lat,
+      lng: vehicle.lastKnownLocation.lng,
       popupHtml: `<b>${vehicle.name}</b>`,
     },
   ];

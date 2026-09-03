@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getInTouchDevicePositions } from "@/lib/mapmyindia/intouch";
-import mockVehicles from "@/mock/vehicles.json";
+import fs from "fs";
+import path from "path";
 
 export async function GET() {
   try {
@@ -12,6 +13,12 @@ export async function GET() {
         source: "intouch",
         vehicles: liveDevices,
       });
+    }
+
+    let mockVehicles = [];
+    const mockPath = path.join(process.cwd(), "mock", "vehicles.json");
+    if (fs.existsSync(mockPath)) {
+      mockVehicles = JSON.parse(fs.readFileSync(mockPath, "utf-8"));
     }
 
     return NextResponse.json({
