@@ -44,10 +44,17 @@ export default function Map({
     let didFallback = false;
 
     const cleanupMap = () => {
-      if (mapInstanceRef.current && typeof mapInstanceRef.current.remove === "function") {
-        mapInstanceRef.current.remove();
+      try {
+        if (mapInstanceRef.current && typeof mapInstanceRef.current.remove === "function") {
+          mapInstanceRef.current.remove();
+        }
+      } catch (err) {
+        console.warn("Map cleanup warning:", err);
       }
       mapInstanceRef.current = null;
+      if (containerRef.current) {
+        containerRef.current.innerHTML = "";
+      }
     };
 
     const initLeafletFallback = async () => {
@@ -78,7 +85,7 @@ export default function Map({
 
         cleanupMap();
 
-        const map = window.L.map(containerRef.current, { zoomControl: false }).setView(
+        const map = window.L.map(containerRef.current, { zoomControl: true }).setView(
           [center.lat, center.lng],
           zoom,
         );
@@ -108,61 +115,136 @@ export default function Map({
       }
     };
 
-    const initMappls = async () => {
-      try {
-        const mapplsModule = await import("mappls-web-maps");
-        const mapplsClassObject = new mapplsModule.mappls();
-        const loadObject = {
-          map: true,
-          version: "3.0",
+    const tryInitMapplsWithKey = async (key: string): Promise<boolean> => {
+      return new Promise((resolve) => {
+        let finished = false;
+        const done = (success: boolean) => {
+          if (!finished) {
+            finished = true;
+            resolve(success);
+          }
         };
 
         const timeout = setTimeout(() => {
-          if (isMounted && !mapInstanceRef.current && !didFallback) {
-            console.warn("Mappls SDK timed out, switching to OpenStreetMap...");
-            initLeafletFallback();
-          }
-        }, 1200);
+          done(false);
+        }, 6000);
 
-        mapplsClassObject.initialize(MAPPLS_KEY, loadObject, () => {
-          clearTimeout(timeout);
-          if (!isMounted || !containerRef.current || didFallback) return;
+        import("mappls-web-maps")
+          .then((mapplsModule) => {
+            const mapplsClassObject = new mapplsModule.mappls();
+            const loadObject = {
+              map: true,
+              version: "3.0",
+            };
 
-          try {
-            cleanupMap();
+            mapplsClassObject.initialize(key, loadObject, () => {
+              clearTimeout(timeout);
+              if (!isMounted || !containerRef.current) {
+                done(false);
+                return;
+              }
 
-            const newMap = mapplsClassObject.Map({
-              id: containerRef.current.id,
-              properties: {
-                center: [center.lat, center.lng],
-                zoom: zoom,
-              },
-            });
+              try {
+                cleanupMap();
 
-            newMap.on("load", () => {
-              markers.forEach((marker) => {
-                if (window.mappls) {
-                  new window.mappls.Marker({
-                    map: newMap,
-                    position: {
-                      lat: marker.lat,
-                      lng: marker.lng,
-                    },
-                    popupHtml: marker.popupHtml,
+                const newMap = mapplsClassObject.Map({
+                  id: containerRef.current.id,
+                  properties: {
+                    center: [center.lat, center.lng],
+                    zoom: zoom,
+                  },
+                });
+
+                const addMarkers = () => {
+                  markers.forEach((marker) => {
+                    if (window.mappls) {
+                      new window.mappls.Marker({
+                        map: newMap,
+                        position: {
+                          lat: marker.lat,
+                          lng: marker.lng,
+                        },
+                        popupHtml: marker.popupHtml,
+                      });
+                    }
                   });
-                }
-              });
-            });
+                };
 
-            mapInstanceRef.current = newMap;
-            setMapSource("mappls");
-          } catch (e) {
-            console.error("Error creating Mappls map instance:", e);
-            initLeafletFallback();
-          }
-        });
-      } catch (err) {
-        console.warn("Mappls initialization failed, falling back to OpenStreetMap:", err);
+                if (newMap && typeof newMap.on === "function") {
+                  newMap.on("load", addMarkers);
+                  if (typeof newMap.loaded === "function" && newMap.loaded()) {
+                    addMarkers();
+                  }
+                } else {
+                  addMarkers();
+                }
+
+                mapInstanceRef.current = newMap;
+                setMapSource("mappls");
+                done(true);
+              } catch (e) {
+                console.error("Error creating Mappls map instance with key:", e);
+                done(false);
+              }
+            });
+          })
+          .catch((err) => {
+            clearTimeout(timeout);
+            console.warn("Failed to load mappls-web-maps:", err);
+            done(false);
+          });
+      });
+    };
+
+    const initMappls = async () => {
+      // 1. If window.mappls is already available, use it directly
+      if (window.mappls && containerRef.current) {
+        try {
+          cleanupMap();
+          const mapplsModule = await import("mappls-web-maps");
+          const mapplsClassObject = new mapplsModule.mappls();
+          const newMap = mapplsClassObject.Map({
+            id: containerRef.current.id,
+            properties: {
+              center: [center.lat, center.lng],
+              zoom: zoom,
+            },
+          });
+
+          markers.forEach((marker) => {
+            new window.mappls.Marker({
+              map: newMap,
+              position: {
+                lat: marker.lat,
+                lng: marker.lng,
+              },
+              popupHtml: marker.popupHtml,
+            });
+          });
+
+          mapInstanceRef.current = newMap;
+          setMapSource("mappls");
+          return;
+        } catch (e) {
+          console.warn("Quick init with existing window.mappls failed:", e);
+        }
+      }
+
+      // 2. Try primary key
+      const keysToTry: string[] = [];
+      if (MAPPLS_KEY) keysToTry.push(MAPPLS_KEY);
+      const fallbackKey = "reqpzxosewtfxhrtixlizunwfgebmjwqfjbc";
+      if (!keysToTry.includes(fallbackKey)) keysToTry.push(fallbackKey);
+
+      for (const key of keysToTry) {
+        if (!isMounted) return;
+        const success = await tryInitMapplsWithKey(key);
+        if (success) return;
+      }
+
+      // 3. If all Mappls keys fail/time out, cleanly fallback to Leaflet OSM
+      if (isMounted && !didFallback) {
+        console.warn("Mappls SDK failed or timed out, switching cleanly to OpenStreetMap...");
         initLeafletFallback();
       }
     };
