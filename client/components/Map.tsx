@@ -2,11 +2,12 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
-const MAPPLS_KEY =
+const rawKey =
   process.env.NEXT_PUBLIC_MAPPLS_KEY ||
   process.env.NEXT_PUBLIC_MAPMYINDIA_API_KEY ||
   "reqpzxosewtfxhrtixlizunwfgebmjwqfjbc";
 
+const MAPPLS_KEY = rawKey.replace(/['"]+/g, "").trim();
 // Pixel radius within which nearby markers get grouped into one cluster.
 // Tune this if clusters feel too eager / too sparse.
 const CLUSTER_RADIUS_PX = 60;
@@ -113,7 +114,11 @@ export default function Map({
     const cleanupMap = () => {
       clearNativeMarkers();
       if (mapInstanceRef.current && typeof mapInstanceRef.current.remove === "function") {
-        mapInstanceRef.current.remove();
+        try {
+          mapInstanceRef.current.remove();
+        } catch (e) {
+          console.warn("Error removing previous map instance:", e);
+        }
       }
       mapInstanceRef.current = null;
       setClusterBubbles([]);
@@ -280,10 +285,10 @@ export default function Map({
 
         const timeout = setTimeout(() => {
           if (isMounted && !mapInstanceRef.current && !didFallback) {
-            console.warn("Mappls SDK timed out, switching to OpenStreetMap...");
+            console.warn("Mappls SDK timed out, switching to OpenStreetMap fallback...");
             initLeafletFallback();
           }
-        }, 1200);
+        }, 8000);
 
         mapplsClassObject.initialize(MAPPLS_KEY, loadObject, () => {
           clearTimeout(timeout);
@@ -302,11 +307,15 @@ export default function Map({
 
             const recompute = () => renderMapplsClusters(newMap, mapplsClassObject);
 
-            newMap.on("load", recompute);
-            // Recompute clusters whenever the view settles, so bubbles
-            // regroup/split as the user pans or zooms.
-            newMap.on("moveend", recompute);
-            newMap.on("zoomend", recompute);
+            if (newMap && typeof newMap.on === "function") {
+              newMap.on("load", recompute);
+              // Recompute clusters whenever the view settles, so bubbles
+              // regroup/split as the user pans or zooms.
+              newMap.on("moveend", recompute);
+              newMap.on("zoomend", recompute);
+            } else {
+              recompute();
+            }
 
             mapInstanceRef.current = newMap;
             setMapSource("mappls");
