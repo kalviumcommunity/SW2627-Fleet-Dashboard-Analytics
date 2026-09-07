@@ -4,7 +4,7 @@ import LandingPage from "./Landing/LandingPage";
 
 export default function Home() {
   return (
-    <div>
+    <div className="page-container">
       <Header />
       <LandingPage />
       <Footer />

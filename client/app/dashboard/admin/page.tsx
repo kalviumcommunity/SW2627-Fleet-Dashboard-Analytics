@@ -43,7 +43,7 @@ export default async function AdminPage() {
 
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 bg-gray-50/50">
-      <div className="mx-auto max-w-6xl space-y-8">
+      <div className="mx-auto w-full max-w-7xl space-y-8">
         {/* Navigation & Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
