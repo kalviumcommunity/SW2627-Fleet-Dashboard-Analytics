@@ -9,6 +9,9 @@ const rawKey =
 
 const MAPPLS_KEY = rawKey.replace(/['"]+/g, "").trim();
 
+// Pixel radius within which nearby markers get grouped into one cluster.
+const CLUSTER_RADIUS_PX = 60;
+
 declare global {
   interface Window {
     mappls?: any;
@@ -29,6 +32,62 @@ interface MapProps {
   height?: string;
 }
 
+interface ClusterBubble {
+  x: number;
+  y: number;
+  count: number;
+  lat: number;
+  lng: number;
+}
+
+interface PixelPoint {
+  x: number;
+  y: number;
+  marker: MapMarker;
+}
+
+function clusterPixelPoints(points: PixelPoint[], radiusPx: number) {
+  const used = new Array(points.length).fill(false);
+  const clusters: { x: number; y: number; markers: MapMarker[] }[] = [];
+
+  for (let i = 0; i < points.length; i++) {
+    if (used[i]) continue;
+    const group = [points[i]];
+    used[i] = true;
+
+    for (let j = i + 1; j < points.length; j++) {
+      if (used[j]) continue;
+      const dx = points[i].x - points[j].x;
+      const dy = points[i].y - points[j].y;
+      if (Math.sqrt(dx * dx + dy * dy) <= radiusPx) {
+        group.push(points[j]);
+        used[j] = true;
+      }
+    }
+
+    const avgX = group.reduce((s, p) => s + p.x, 0) / group.length;
+    const avgY = group.reduce((s, p) => s + p.y, 0) / group.length;
+
+    clusters.push({ x: avgX, y: avgY, markers: group.map((g) => g.marker) });
+  }
+
+  return clusters;
+}
+
+// Mappls SDK's project() return shape isn't fully confirmed — handle both
+// {x, y} objects and [x, y] tuples defensively so a mismatch here doesn't
+// crash the whole map, it just falls back to un-clustered markers.
+function normalizeProjected(projected: any): { x: number; y: number } | null {
+  if (!projected) return null;
+  if (typeof projected.x === "number" && typeof projected.y === "number") {
+    return { x: projected.x, y: projected.y };
+  }
+  if (Array.isArray(projected) && projected.length >= 2) {
+    return { x: projected[0], y: projected[1] };
+  }
+  return null;
+}
+
 export default function Map({
   markers,
   center = { lat: 26.9124, lng: 75.7873 },
@@ -41,6 +100,7 @@ export default function Map({
   const mapInstanceRef = useRef<any>(null);
   const nativeMarkersRef = useRef<any[]>([]);
   const [mapSource, setMapSource] = useState<"mappls" | "osm" | "loading">("loading");
+  const [clusterBubbles, setClusterBubbles] = useState<ClusterBubble[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -68,6 +128,7 @@ export default function Map({
         }
       }
       mapInstanceRef.current = null;
+      setClusterBubbles([]);
       if (containerRef.current) {
         containerRef.current.innerHTML = "";
       }
@@ -105,9 +166,22 @@ export default function Map({
 
       try {
         loadCssOnce("leaflet-css", "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css");
+        loadCssOnce(
+          "leaflet-cluster-css",
+          "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+        );
+        loadCssOnce(
+          "leaflet-cluster-default-css",
+          "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+        );
 
         if (!window.L) {
           await loadScriptOnce("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js");
+        }
+        if (!window.L.MarkerClusterGroup) {
+          await loadScriptOnce(
+            "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
+          );
         }
 
         if (!isMounted || !containerRef.current || !window.L) return;
@@ -125,12 +199,19 @@ export default function Map({
           maxZoom: 19,
         }).addTo(map);
 
+        const clusterGroup = window.L.markerClusterGroup({
+          maxClusterRadius: CLUSTER_RADIUS_PX,
+        });
+
         markers.forEach((marker) => {
-          const m = window.L.marker([marker.lat, marker.lng]).addTo(map);
+          const m = window.L.marker([marker.lat, marker.lng]);
           if (marker.popupHtml) {
             m.bindPopup(marker.popupHtml);
           }
+          clusterGroup.addLayer(m);
         });
+
+        map.addLayer(clusterGroup);
 
         map.whenReady(() => {
           if (map && typeof map.invalidateSize === "function") {
@@ -145,34 +226,98 @@ export default function Map({
       }
     };
 
-    // ---------------- Mappls: Separate Brown Indicator Pins ----------------
-    const renderMapplsMarkers = (map: any) => {
+    // ---------------- Mappls: clustered markers ----------------
+    const renderMapplsClusters = (map: any) => {
       if (!containerRef.current || !map || !window.mappls) return;
 
-      clearNativeMarkers();
+      let projectFn: ((lngLat: [number, number]) => any) | null = null;
+      if (typeof map.project === "function") {
+        projectFn = (lngLat) => map.project(lngLat);
+      }
 
-      markers.forEach((marker) => {
-        try {
-          const nativeMarker = new window.mappls.Marker({
-            map,
-            position: {
-              lat: marker.lat,
-              lng: marker.lng,
-            },
-            popupHtml: marker.popupHtml,
+      const renderIndividualOnly = () => {
+        clearNativeMarkers();
+        markers.forEach((marker) => {
+          try {
+            const nativeMarker = new window.mappls.Marker({
+              map,
+              position: { lat: marker.lat, lng: marker.lng },
+              popupHtml: marker.popupHtml,
+            });
+            nativeMarkersRef.current.push(nativeMarker);
+          } catch (e) {
+            console.error("Error creating individual Mappls marker:", e);
+          }
+        });
+        setClusterBubbles([]);
+      };
+
+      if (!projectFn) {
+        renderIndividualOnly();
+        return;
+      }
+
+      const points: PixelPoint[] = markers
+        .map((marker) => {
+          try {
+            const projected = normalizeProjected(projectFn!([marker.lng, marker.lat]));
+            if (!projected) return null;
+            return { x: projected.x, y: projected.y, marker };
+          } catch {
+            return null;
+          }
+        })
+        .filter((p): p is PixelPoint => p !== null);
+
+      if (points.length === 0 && markers.length > 0) {
+        renderIndividualOnly();
+        return;
+      }
+
+      const clusters = clusterPixelPoints(points, CLUSTER_RADIUS_PX);
+
+      clearNativeMarkers();
+      const bubbles: ClusterBubble[] = [];
+
+      clusters.forEach((cluster) => {
+        if (cluster.markers.length === 1) {
+          const marker = cluster.markers[0];
+          try {
+            const nativeMarker = new window.mappls.Marker({
+              map,
+              position: { lat: marker.lat, lng: marker.lng },
+              popupHtml: marker.popupHtml,
+            });
+            nativeMarkersRef.current.push(nativeMarker);
+          } catch (e) {
+            console.error("Error creating individual Mappls marker:", e);
+          }
+        } else {
+          const avgLat =
+            cluster.markers.reduce((s, m) => s + m.lat, 0) / cluster.markers.length;
+          const avgLng =
+            cluster.markers.reduce((s, m) => s + m.lng, 0) / cluster.markers.length;
+
+          bubbles.push({
+            x: cluster.x,
+            y: cluster.y,
+            count: cluster.markers.length,
+            lat: avgLat,
+            lng: avgLng,
           });
-          nativeMarkersRef.current.push(nativeMarker);
-        } catch (e) {
-          console.error("Error creating individual Mappls marker:", e);
         }
       });
+
+      setClusterBubbles(bubbles);
     };
 
     const attachMapplsEvents = (newMap: any) => {
-      const render = () => renderMapplsMarkers(newMap);
+      const render = () => renderMapplsClusters(newMap);
 
       if (newMap && typeof newMap.on === "function") {
         newMap.on("load", render);
+        newMap.on("moveend", render);
+        newMap.on("zoomend", render);
         if (typeof newMap.loaded === "function" && newMap.loaded()) {
           render();
         }
@@ -241,7 +386,6 @@ export default function Map({
     };
 
     const initMappls = async () => {
-      // 1. If window.mappls is already available, use it directly
       if (window.mappls && containerRef.current) {
         try {
           cleanupMap();
@@ -265,7 +409,6 @@ export default function Map({
         }
       }
 
-      // 2. Try configured key, then fallback key
       const keysToTry: string[] = [];
       if (MAPPLS_KEY) keysToTry.push(MAPPLS_KEY);
       const fallbackKey = "reqpzxosewtfxhrtixlizunwfgebmjwqfjbc";
@@ -277,7 +420,6 @@ export default function Map({
         if (success) return;
       }
 
-      // 3. Fallback to OpenStreetMap
       if (isMounted && !didFallback) {
         console.warn("Mappls SDK failed or timed out, switching cleanly to OpenStreetMap...");
         initLeafletFallback();
@@ -292,6 +434,18 @@ export default function Map({
     };
   }, [markers, center.lat, center.lng, zoom]);
 
+  const handleBubbleClick = (bubble: ClusterBubble) => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    try {
+      if (typeof map.flyTo === "function") {
+        map.flyTo({ center: [bubble.lng, bubble.lat], zoom: (map.getZoom?.() || zoom) + 2 });
+      }
+    } catch (e) {
+      console.error("Error zooming into cluster:", e);
+    }
+  };
+
   return (
     <div className="relative rounded-xl overflow-hidden border shadow-sm bg-gray-50">
       <div
@@ -302,6 +456,26 @@ export default function Map({
           height,
         }}
       />
+
+      {mapSource === "mappls" &&
+        clusterBubbles.map((bubble, i) => (
+          <button
+            key={i}
+            onClick={() => handleBubbleClick(bubble)}
+            className="absolute z-[900] flex items-center justify-center rounded-full bg-blue-600 text-white font-semibold shadow-md border-2 border-white cursor-pointer hover:bg-blue-700 transition-colors"
+            style={{
+              left: bubble.x,
+              top: bubble.y,
+              width: 36 + Math.min(bubble.count, 40),
+              height: 36 + Math.min(bubble.count, 40),
+              transform: "translate(-50%, -50%)",
+              fontSize: "13px",
+            }}
+            aria-label={`${bubble.count} vehicles clustered here, click to zoom in`}
+          >
+            {bubble.count}
+          </button>
+        ))}
 
       {mapSource === "osm" && (
         <div className="absolute top-2 right-2 z-[1000] bg-white/90 backdrop-blur-xs text-[11px] font-medium px-2 py-1 rounded shadow text-gray-600 border">
