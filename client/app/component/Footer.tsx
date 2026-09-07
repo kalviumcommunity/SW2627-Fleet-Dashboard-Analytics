@@ -1,8 +1,9 @@
-export default function Footer(){
+export default function Footer() {
   return (
-    <footer>
-    <h1> Footer</h1>
-    2 
+    <footer className="footer">
+      <p className="footer-text">
+        © 2026 FleetPulse. Fleet Dashboard & Analytics.
+      </p>
     </footer>
-  )
-}
+  );
+}

@@ -1,15 +1,25 @@
 import Link from "next/link";
 
 export default function LandingPage() {
-    return (
-        <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
-            <h1>Fleet Dashboard</h1>
-            <p>Welcome to the Fleet Dashboard</p>
-            <nav style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-                <Link href="/login" style={{ color: "#2563eb", textDecoration: "underline" }}>Login</Link>
-                <Link href="/signup" style={{ color: "#2563eb", textDecoration: "underline" }}>Sign Up</Link>
-                <Link href="/dashboard" style={{ color: "#2563eb", textDecoration: "underline" }}>Dashboard</Link>
-            </nav>
+  return (
+    <main className="hero-section">
+      <div className="hero-card">
+        <h1 className="hero-title">Fleet Dashboard</h1>
+        <p className="hero-subtitle">
+          Monitor your fleet&apos;s vehicles, locations, and trip history in real time.
+        </p>
+        <div className="hero-actions">
+          <Link href="/dashboard" className="btn btn-primary">
+            Go to Dashboard
+          </Link>
+          <Link href="/login" className="btn btn-outline">
+            Login
+          </Link>
+          <Link href="/signup" className="btn btn-outline">
+            Sign Up
+          </Link>
         </div>
-    );
-}
+      </div>
+    </main>
+  );
+}

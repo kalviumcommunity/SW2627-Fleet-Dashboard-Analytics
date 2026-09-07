@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+@import "../styles/base/variables.css";
+@import "../styles/components/buttons.css";
+@import "../styles/layout/header.css";
+@import "../styles/layout/footer.css";
+@import "../styles/pages/landing.css";
