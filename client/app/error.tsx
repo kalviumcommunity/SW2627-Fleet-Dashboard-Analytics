@@ -18,11 +18,16 @@ export default function Error({
     <main className="flex min-h-screen items-center justify-center p-8">
       <div className="text-center">
         <p className="text-sm font-medium text-red-500">Error</p>
-        <h1 className="mt-2 text-3xl font-bold">Something went wrong</h1>
+
+        <h1 className="mt-2 text-3xl font-bold">
+          Something went wrong
+        </h1>
+
         <p className="mt-2 text-gray-500">
           An unexpected error occurred. You can try again or go back to the
           dashboard.
         </p>
+
         <div className="mt-6 flex justify-center gap-3">
           <button
             onClick={reset}
@@ -30,6 +35,7 @@ export default function Error({
           >
             Try again
           </button>
+
           <Link
             href="/dashboard"
             className="rounded-lg border px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
