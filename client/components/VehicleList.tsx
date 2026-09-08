@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import StatusBadge from "@/components/StatusBadge";
 
 export interface Vehicle {
@@ -33,6 +33,13 @@ export default function VehicleList({ vehicles }: VehicleListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("name-asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(30);
+
+  // Reset to page 1 whenever filters or search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, sortBy, pageSize]);
 
   // Status counts for badge indicators
   const counts = useMemo(() => {
@@ -123,12 +130,19 @@ export default function VehicleList({ vehicles }: VehicleListProps) {
     });
   }, [vehicles, statusFilter, searchQuery, sortBy]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredAndSortedVehicles.length / pageSize));
+  const paginatedVehicles = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredAndSortedVehicles.slice(start, start + pageSize);
+  }, [filteredAndSortedVehicles, currentPage, pageSize]);
+
   const hasActiveFilters = searchQuery.trim() !== "" || statusFilter !== "all";
 
   function handleResetFilters() {
     setSearchQuery("");
     setStatusFilter("all");
     setSortBy("name-asc");
+    setCurrentPage(1);
   }
 
   return (
@@ -154,18 +168,15 @@ export default function VehicleList({ vehicles }: VehicleListProps) {
                 />
               </svg>
             </div>
-
             <input
               type="text"
+              placeholder="Search by vehicle name, plate number, or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, plate number, or ID..."
-              className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-8 text-sm placeholder-gray-400 shadow-xs focus:border-blue-500 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-8 text-xs text-gray-900 placeholder-gray-400 shadow-xs focus:border-blue-500 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
             />
-
             {searchQuery && (
               <button
-                type="button"
                 onClick={() => setSearchQuery("")}
                 className="absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
                 aria-label="Clear search"
@@ -221,7 +232,7 @@ export default function VehicleList({ vehicles }: VehicleListProps) {
                         : "bg-gray-100 text-gray-600"
                     }`}
                   >
-                    {option.count}
+                    {option.count.toLocaleString()}
                   </span>
                 </button>
               );
@@ -232,9 +243,9 @@ export default function VehicleList({ vehicles }: VehicleListProps) {
             <span>
               Showing{" "}
               <strong className="font-semibold text-gray-700">
-                {filteredAndSortedVehicles.length}
+                {filteredAndSortedVehicles.length.toLocaleString()}
               </strong>{" "}
-              of {vehicles.length} vehicles
+              of {vehicles.length.toLocaleString()} vehicles
             </span>
             {hasActiveFilters && (
               <button
@@ -267,40 +278,117 @@ export default function VehicleList({ vehicles }: VehicleListProps) {
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredAndSortedVehicles.map((vehicle) => (
-            <Link
-              key={vehicle.id}
-              href={`/dashboard/${vehicle.id}`}
-              className="group rounded-xl border border-gray-200 bg-white p-5 shadow-xs transition hover:border-blue-300 hover:shadow-md"
-            >
-              <div className="flex items-start justify-between">
-                <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                  {vehicle.name}
-                </h3>
-                <StatusBadge status={vehicle.status} />
-              </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {paginatedVehicles.map((vehicle) => (
+              <Link
+                key={vehicle.id}
+                href={`/dashboard/${vehicle.id}`}
+                className="group rounded-xl border border-gray-200 bg-white p-5 shadow-xs transition hover:border-blue-300 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between">
+                  <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    {vehicle.name}
+                  </h3>
+                  <StatusBadge status={vehicle.status} />
+                </div>
 
-              <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-                <span className="font-mono uppercase font-medium text-gray-700">
-                  {vehicle.registrationNumber}
-                </span>
-                <span className="text-gray-400">ID: {vehicle.id}</span>
-              </div>
+                <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                  <span className="font-mono uppercase font-medium text-gray-700">
+                    {vehicle.registrationNumber}
+                  </span>
+                  <span className="text-gray-400">ID: {vehicle.id}</span>
+                </div>
 
-              <div className="mt-3 border-t border-gray-100 pt-3 text-[11px] text-gray-500 flex items-center justify-between">
+                <div className="mt-3 border-t border-gray-100 pt-3 text-[11px] text-gray-500 flex items-center justify-between">
+                  <span>
+                    {vehicle.lastKnownLocation?.lat && vehicle.lastKnownLocation?.lng
+                      ? `Loc: ${vehicle.lastKnownLocation.lat.toFixed(3)}, ${vehicle.lastKnownLocation.lng.toFixed(3)}`
+                      : "No location"}
+                  </span>
+                  <span className="text-blue-600 font-medium group-hover:underline">
+                    View Trips →
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {filteredAndSortedVehicles.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-200 pt-4 text-xs text-gray-600">
+              <div className="flex items-center gap-2">
                 <span>
-                  {vehicle.lastKnownLocation?.lat && vehicle.lastKnownLocation?.lng
-                    ? `Loc: ${vehicle.lastKnownLocation.lat.toFixed(3)}, ${vehicle.lastKnownLocation.lng.toFixed(3)}`
-                    : "No location"}
+                  Showing{" "}
+                  <strong>
+                    {((currentPage - 1) * pageSize + 1).toLocaleString()}
+                  </strong>{" "}
+                  to{" "}
+                  <strong>
+                    {Math.min(currentPage * pageSize, filteredAndSortedVehicles.length).toLocaleString()}
+                  </strong>{" "}
+                  of{" "}
+                  <strong>
+                    {filteredAndSortedVehicles.length.toLocaleString()}
+                  </strong>{" "}
+                  vehicles
                 </span>
-                <span className="text-blue-600 font-medium group-hover:underline">
-                  View Trips →
-                </span>
+
+                <span className="text-gray-300">|</span>
+
+                <label htmlFor="page-size-select" className="sr-only">
+                  Vehicles per page
+                </label>
+                <select
+                  id="page-size-select"
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="rounded border border-gray-300 bg-white px-2 py-1 text-xs cursor-pointer"
+                >
+                  <option value={30}>30 per page</option>
+                  <option value={60}>60 per page</option>
+                  <option value={120}>120 per page</option>
+                </select>
               </div>
-            </Link>
-          ))}
-        </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="rounded border border-gray-300 bg-white px-2.5 py-1 font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  « First
+                </button>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded border border-gray-300 bg-white px-2.5 py-1 font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  ‹ Prev
+                </button>
+
+                <span className="px-3 py-1 font-semibold text-gray-700">
+                  Page {currentPage} of {totalPages}
+                </span>
+
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="rounded border border-gray-300 bg-white px-2.5 py-1 font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Next ›
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="rounded border border-gray-300 bg-white px-2.5 py-1 font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Last »
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
