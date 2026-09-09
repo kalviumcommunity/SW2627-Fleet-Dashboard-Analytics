@@ -12,9 +12,10 @@ export function validateEnv() {
   }
 
   if (missing.length > 0) {
-    throw new Error(
-      `Missing required environment variables: ${missing.join(", ")}\n` +
-        `Check your .env.local file and compare against .env.example.`
-    );
+    const message =
+      `[Fleet Dashboard Warning] Missing environment variables: ${missing.join(", ")}\n` +
+      `Ensure these variables are configured in your Render dashboard or .env file for full Supabase and Map functionality.`;
+
+    console.warn(message);
   }
 }

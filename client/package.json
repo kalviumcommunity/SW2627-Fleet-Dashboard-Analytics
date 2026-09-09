@@ -2,6 +2,9 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,7 +13,9 @@
     "generate:mock": "tsx scripts/generateMockData.ts",
     "seed:supabase": "tsx scripts/seedSupabase.ts",
     "test:rls": "tsx scripts/testRLS.ts",
-    "postinstall": "prisma skills sync || exit 0"
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "postinstall": "prisma generate || exit 0"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
