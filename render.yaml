@@ -1,0 +1,39 @@
+# Render Blueprint specification for SW2627 Fleet Dashboard Analytics
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: fleet-dashboard
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: client
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22
+      - key: PORT
+        value: 3000
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: NEXT_PUBLIC_MAPPLS_KEY
+        sync: false
+      - key: SERVICE_ROLE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+
+# To deploy with a managed Render PostgreSQL database, uncomment the block below
+# and reference it in the web service:
+# databases:
+#   - name: fleet-dashboard-db
+#     databaseName: fleetdb
+#     user: fleetuser
+#     plan: free
+#     region: oregon

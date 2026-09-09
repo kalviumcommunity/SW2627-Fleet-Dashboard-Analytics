@@ -134,9 +134,23 @@ Edit `VEHICLE_COUNT` in `scripts/generateMockData.ts` to test at different scale
 
 ---
 
+## Deployment (Render)
+
+The application is deployment-ready for [Render](https://render.com) as a full-stack Next.js web service.
+
+- **Blueprint Deployment (1-Click):** Connect the repository to Render and select **Blueprint** (`render.yaml`).
+- **Native Node Deployment:** Set Root Directory to `client`, Build Command to `npm install && npm run build`, and Start Command to `npm start`.
+- **Docker Deployment:** Deploy as a Docker Web Service using the provided multi-stage `Dockerfile`.
+- **Health Check URL:** `/api/health`
+
+For the complete guide, see the [Render Deployment Guide](docs/RENDER_DEPLOYMENT.md).
+
+---
+
 ## Documentation
 
 Detailed project documentation is available in the `/docs` folder:
+- **RENDER_DEPLOYMENT.md** — Step-by-Step Render Deployment Guide
 - **PRD.md** — Product Requirements Document
 - **TRD.md** — Technical Requirements Document
 - **UIUX.md** — UI/UX Design Document

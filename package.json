@@ -1,0 +1,19 @@
+{
+  "name": "fleet-dashboard-analytics",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "description": "SW2627 Fleet Dashboard Analytics monorepo root runner",
+  "scripts": {
+    "dev": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix client start",
+    "lint": "npm --prefix client run lint",
+    "postinstall": "npm --prefix client run postinstall",
+    "db:generate": "npm --prefix client run db:generate",
+    "db:push": "npm --prefix client run db:push",
+    "seed:supabase": "npm --prefix client run seed:supabase"
+  }
+}

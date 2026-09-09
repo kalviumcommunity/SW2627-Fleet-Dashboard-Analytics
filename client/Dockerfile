@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for Fleet Dashboard (Next.js Standalone + Render compatibility)
-# Uses Node 22 Alpine (LTS) to satisfy @supabase/supabase-js dependencies (Node >= 22)
+# Context: client directory (when Root Directory is set to "client" on Render)
 FROM node:22-alpine AS base
 
 # Step 1: Install dependencies
@@ -8,8 +8,8 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package manifests and Prisma schema for accurate dependency caching
-COPY client/package*.json ./
-COPY client/prisma ./prisma/
+COPY package*.json ./
+COPY prisma ./prisma/
 
 # Install dependencies with lockfile fallback for cross-platform stability
 RUN npm ci || (npm install && npm cache clean --force)
@@ -19,7 +19,7 @@ FROM base AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY client/ .
+COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production

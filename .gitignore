@@ -2,5 +2,7 @@ node_modules/
 .DS_Store
 *.log
 .next/
-.env*
+.env
+.env.*
+!.env.example
 
