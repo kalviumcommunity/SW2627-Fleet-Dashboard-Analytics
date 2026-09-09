@@ -4,6 +4,8 @@ A fleet management dashboard that lets users view all vehicles in a fleet, see e
 
 Built as part of **SW2627 — Data Product Development & Delivery Analytics** (Kalvium Community).
 
+**Live Dashboard:** [https://sw2627-fleet-dashboard-analytics.onrender.com/dashboard](https://sw2627-fleet-dashboard-analytics.onrender.com/dashboard)
+
 ---
 
 ## Team — Team 04
@@ -136,12 +138,13 @@ Edit `VEHICLE_COUNT` in `scripts/generateMockData.ts` to test at different scale
 
 ## Deployment (Render)
 
-The application is deployment-ready for [Render](https://render.com) as a full-stack Next.js web service.
+The application is deployed on [Render](https://render.com) as a full-stack Next.js web service.
 
+- **Live Dashboard:** [https://sw2627-fleet-dashboard-analytics.onrender.com/dashboard](https://sw2627-fleet-dashboard-analytics.onrender.com/dashboard)
+- **Health Check URL:** [https://sw2627-fleet-dashboard-analytics.onrender.com/api/health](https://sw2627-fleet-dashboard-analytics.onrender.com/api/health)
 - **Blueprint Deployment (1-Click):** Connect the repository to Render and select **Blueprint** (`render.yaml`).
 - **Native Node Deployment:** Set Root Directory to `client`, Build Command to `npm install && npm run build`, and Start Command to `npm start`.
 - **Docker Deployment:** Deploy as a Docker Web Service using the provided multi-stage `Dockerfile`.
-- **Health Check URL:** `/api/health`
 
 For the complete guide, see the [Render Deployment Guide](docs/RENDER_DEPLOYMENT.md).
 
