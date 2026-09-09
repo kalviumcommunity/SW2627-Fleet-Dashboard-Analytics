@@ -145,6 +145,26 @@ Once deployed, Render provides you with a public URL: `https://<service-name>.on
 
 ---
 
+## API Reference
+
+The deployed service includes a complete REST API suite:
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/hello` | API directory and documentation of all available routes. |
+| `GET` | `/api/health` | Uptime and service health check (used by Render). |
+| `GET` | `/api/fleet/vehicles` | List vehicles. Supports `?page=1&limit=50&status=active&search=query`. |
+| `POST` | `/api/fleet/vehicles` | Register a new vehicle (`{ name, registrationNumber, status, lat, lng }`). |
+| `GET` | `/api/fleet/vehicles/[id]` | Vehicle details by ID or plate number, including recent trip logs. |
+| `PATCH` | `/api/fleet/vehicles/[id]` | Update vehicle location (`lat`, `lng`), status, or name. |
+| `DELETE` | `/api/fleet/vehicles/[id]` | Delete vehicle and cascade clean up associated trips. |
+| `GET` | `/api/fleet/trips` | Trip logs. Supports `?vehicleId=...&page=1&limit=20`. |
+| `POST` | `/api/fleet/trips` | Record a completed trip (`{ vehicleId, startTime, endTime, distanceKm, ... }`). |
+| `GET` | `/api/fleet/stats` | High-level metrics: total, active, idle, offline vehicles & total trips. |
+| `GET` | `/api/mappls/token` | Mappls OAuth token generation with graceful API key fallback. |
+
+---
+
 ## Troubleshooting
 
 - **404 on Static Assets (`_next/static`):**
