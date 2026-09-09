@@ -177,3 +177,5 @@ Detailed project documentation is available in the `/docs` folder:
 - `main` is protected — no direct pushes
 - Create a feature branch for any change: `git checkout -b feature/your-feature-name`
 - Open a pull request into `main` and get at least one review before merging
+
+
