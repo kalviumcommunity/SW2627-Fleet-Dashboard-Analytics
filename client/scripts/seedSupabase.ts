@@ -8,7 +8,7 @@ dotenv.config({ path: ".env.local" });
 // --- Config ---
 const SUPABASE_URL = (process.env.Project_URL || process.env.NEXT_PUBLIC_SUPABASE_URL) as string;
 const SERVICE_ROLE_KEY = process.env.service_role_key as string;
-const TEST_LIMIT = 100; // test with 100 records first, per today's task
+const TEST_LIMIT = 10000; 
  
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   throw new Error(
