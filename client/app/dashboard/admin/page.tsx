@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserRole } from "@/lib/supabase/getUserRole";
 import UserRow from "@/components/UserRow";
 import AddVehicleForm from "@/components/AddVehicleForm";
@@ -15,11 +16,13 @@ export default async function AdminPage() {
   }
 
   const supabase = await createClient();
+  const supabaseAdmin = createAdminClient();
+  
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [profilesRes, vehiclesRes] = await Promise.all([
+  const [profilesRes, vehiclesRes, authUsersRes] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, email, role, created_at")
@@ -28,9 +31,17 @@ export default async function AdminPage() {
       .from("vehicles")
       .select("id, name, plate_number, status, lat, lng, created_at")
       .order("created_at", { ascending: false }),
+    supabaseAdmin.auth.admin.listUsers()
   ]);
 
-  const profiles = profilesRes.data || [];
+  const authUsers = authUsersRes.data?.users || [];
+  const authUsersMap = new Map(authUsers.map(u => [u.id, u]));
+
+  const profiles = (profilesRes.data || []).map((p) => ({
+    ...p,
+    last_sign_in_at: authUsersMap.get(p.id)?.last_sign_in_at || null,
+  }));
+
   const vehicles = (vehiclesRes.data || []).map((v) => ({
     id: String(v.id),
     name: v.name,
@@ -107,16 +118,21 @@ export default async function AdminPage() {
 
         {/* Section 2: User Management */}
         <section className="space-y-4 pt-6 border-t border-gray-200">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-gray-900">User Management</h2>
               <p className="mt-0.5 text-sm text-gray-500">
-                Promote or demote user account roles
+                Monitor user signups, logins, and manage roles
               </p>
             </div>
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
-              {profiles.length} Users
-            </span>
+            <div className="flex gap-2">
+              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                {profiles.length} Total Users
+              </span>
+              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                {profiles.filter(p => p.last_sign_in_at).length} Logged In (All Time)
+              </span>
+            </div>
           </div>
 
           {profilesRes.error ? (
@@ -130,7 +146,7 @@ export default async function AdminPage() {
                   <tr>
                     <th className="px-6 py-3 font-medium">Email</th>
                     <th className="px-6 py-3 font-medium">Role</th>
-                    <th className="px-6 py-3 font-medium">Joined</th>
+                    <th className="px-6 py-3 font-medium">Signup & Activity</th>
                     <th className="px-6 py-3 font-medium">Action</th>
                   </tr>
                 </thead>

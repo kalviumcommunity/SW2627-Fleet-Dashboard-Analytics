@@ -8,6 +8,7 @@ interface Profile {
   email: string;
   role: string;
   created_at: string;
+  last_sign_in_at?: string | null;
 }
 
 export default function UserRow({ profile }: { profile: Profile }) {
@@ -28,11 +29,18 @@ export default function UserRow({ profile }: { profile: Profile }) {
   }
 
   return (
-    <tr className="border-b last:border-b-0">
+    <tr className="border-b last:border-b-0 hover:bg-gray-50/50 transition">
       <td className="px-6 py-4">{profile.email}</td>
-      <td className="px-6 py-4 capitalize">{profile.role}</td>
       <td className="px-6 py-4">
-        {new Date(profile.created_at).toLocaleDateString()}
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${profile.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'} capitalize`}>
+          {profile.role}
+        </span>
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex flex-col text-xs text-gray-500">
+          <span>Signed up: {new Date(profile.created_at).toLocaleDateString()}</span>
+          <span>Last login: {profile.last_sign_in_at ? new Date(profile.last_sign_in_at).toLocaleString() : 'Never'}</span>
+        </div>
       </td>
       <td className="px-6 py-4">
         <button
